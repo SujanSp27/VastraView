@@ -481,22 +481,66 @@ def delete_run(run_id: UUID, db: Session = Depends(get_db)):
     db.commit()
 
 
+@app.get("/api/samples/models")
+def sample_models():
+    """Return available sample models for virtual try-on."""
+    return [
+        {
+            "id": "male",
+            "name": "Male Model",
+            "gender": "male",
+            "url": "/api/samples/person-male",
+            "filename": "studio-person.jpg",
+            "description": "Standard athletic male model (180 cm)",
+        },
+        {
+            "id": "female",
+            "name": "Female Model",
+            "gender": "female",
+            "url": "/api/samples/person-female",
+            "filename": "vastraview_female_model.png",
+            "description": "Standard elegant female model (168 cm)",
+        },
+    ]
+
+
 @app.get("/api/samples/{kind}")
 def sample(kind: str):
     if settings.environment == "production":
         raise HTTPException(404, "Research samples are not published in production.")
-    files = {"person": "studio-person.jpg", "garment": "garment-demo.png", "polo": "sage-polo.jpg"}
-    if kind not in files or not (ROOT / "data/raw" / files[kind]).is_file():
+    files = {
+        "person": "studio-person.jpg",
+        "male": "studio-person.jpg",
+        "person-male": "studio-person.jpg",
+        "female": "vastraview_female_model.png",
+        "person-female": "vastraview_female_model.png",
+        "garment": "garment-demo.png",
+        "polo": "sage-polo.jpg",
+    }
+    if kind not in files:
+        raise HTTPException(404, "Sample not available")
+    target = ROOT / "data/raw" / files[kind]
+    if not target.is_file():
+        if "female" in kind:
+            target = ROOT / "assets/Model/vastraview_female_model.png"
+        elif "male" in kind or kind == "person":
+            target = ROOT / "assets/Model/studio-person.jpg"
+    if not target.is_file():
         raise HTTPException(404, "Sample not available")
     return FileResponse(
-        ROOT / "data/raw" / files[kind],
-        media_type="image/png" if kind == "garment" else "image/jpeg",
+        target,
+        media_type="image/png" if target.suffix.lower() == ".png" else "image/jpeg",
+        headers={"Cache-Control": "public, max-age=86400"},
     )
 
 
 @app.get("/api/v1/public-config")
 def public_config():
-    return {"sample_photos": settings.environment != "production" and (ROOT / "data/raw/studio-person.jpg").is_file(),
-            "email_verification_required": settings.auth_require_verification,
-            "guest_retention_hours": settings.guest_retention_hours,
-            "generated_retention_days": settings.private_retention_days}
+    return {
+        "sample_photos": settings.environment != "production" and (
+            (ROOT / "data/raw/studio-person.jpg").is_file() or (ROOT / "assets/Model/studio-person.jpg").is_file()
+        ),
+        "email_verification_required": settings.auth_require_verification,
+        "guest_retention_hours": settings.guest_retention_hours,
+        "generated_retention_days": settings.private_retention_days,
+    }

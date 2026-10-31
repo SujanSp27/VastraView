@@ -10,6 +10,7 @@ import { useMeasurement } from "../measurement/MeasurementProvider";
 import SplitCompareViewer from "./SplitCompareViewer";
 import GenerationProgress from "./GenerationProgress";
 import GarmentPicker, { type Garment } from "./GarmentPicker";
+import SampleModelModal, { type SampleModel } from "./SampleModelModal";
 import { getDiscoveredGarmentById } from "../catalog/discoveredGarments";
 import "./comparison.css";
 import { ErrorNotice } from "../../components/feedback/Feedback";
@@ -43,6 +44,7 @@ export default function TryOnStudio() {
   const [checkVersion, setCheckVersion] = useState(0);
   const [retryBusy, setRetryBusy] = useState(false);
   const [showConnectModal, setShowConnectModal] = useState(false);
+  const [showSampleModal, setShowSampleModal] = useState(false);
   const [connectInput, setConnectInput] = useState("");
   const [connectError, setConnectError] = useState("");
   const [connectBusy, setConnectBusy] = useState(false);
@@ -167,43 +169,45 @@ export default function TryOnStudio() {
       setConnectBusy(false);
     }
   }
-  async function sample(withPerson = true) {
+
+  async function selectSampleModel(model: SampleModel) {
     setSamplesBusy(true);
     setError("");
     reset();
     try {
       const [personFile, collection] = await Promise.all([
-        withPerson
-          ? downloadPhoto("/api/samples/person", "studio-person.jpg")
-          : Promise.resolve(person),
-        api<{ items: Garment[] }>(
-          "/api/v1/products?limit=1&tryon_supported=true",
-        ),
+        downloadPhoto(model.previewUrl, model.filename),
+        !garment
+          ? api<{ items: Garment[] }>("/api/v1/products?limit=12&tryon_supported=true")
+          : Promise.resolve(null),
       ]);
       setPerson(personFile);
-      const item = collection.items[0];
-      if (!item) {
-        setGarment(undefined);
-        setSelectedGarment(undefined);
-        setError(
-          "The sample person is ready. No catalog garment has passed review yet; upload your own supported garment to continue.",
-        );
-        return;
+      if (collection && collection.items.length > 0) {
+        const item =
+          collection.items.find(
+            (g) =>
+              g.category &&
+              ["shirt", "t-shirt", "sweater", "blouse", "dress"].includes(g.category),
+          ) || collection.items[0];
+        if (item) {
+          const garmentFile = await downloadPhoto(
+            item.referenceImageUrl ?? item.imageUrl,
+            item.id,
+          );
+          setGarment(garmentFile);
+          setCategory(item.category);
+          setPhotoType(item.photoType);
+          setSelectedGarment(item.id);
+        }
       }
-      const garmentFile = await downloadPhoto(
-        item.referenceImageUrl ?? item.imageUrl,
-        item.id,
-      );
-      setGarment(garmentFile);
-      setCategory(item.category);
-      setPhotoType(item.photoType);
-      setSelectedGarment(item.id);
+      setShowSampleModal(false);
     } catch (e) {
       setError((e as Error).message);
     } finally {
       setSamplesBusy(false);
     }
   }
+
   async function selectGarment(item: Garment) {
     if (item.tryon_supported === false || !item.category) {
       setError(
@@ -310,7 +314,7 @@ export default function TryOnStudio() {
             <button
               className="button secondary"
               disabled={busy || samplesBusy}
-              onClick={() => void sample()}
+              onClick={() => setShowSampleModal(true)}
             >
               <Sparkles size={16} />
               Try sample photos
@@ -558,6 +562,13 @@ export default function TryOnStudio() {
           />
         </div>
       </div>
+      <SampleModelModal
+        open={showSampleModal}
+        onClose={() => setShowSampleModal(false)}
+        onSelectModel={(model) => void selectSampleModel(model)}
+        currentFilename={person?.name}
+        loading={samplesBusy}
+      />
     </>
   );
 }
