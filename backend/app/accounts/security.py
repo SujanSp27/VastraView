@@ -62,8 +62,10 @@ def csrf_guard(request: Request):
         raise HTTPException(403, "This request origin is not allowed.")
 
 
-def throttle(db, request: Request, action: str, email: str = "", maximum: int = 20):
+def throttle(db, request: Request, action: str, email: str = "", maximum: int = 12):
     # Atomic fixed windows; shared by processes using this MongoDB.
+    if settings.environment == "development" and action == "tryon":
+        maximum = max(maximum, 200)
     window = int(now().timestamp()) // 900
     ip = request.client.host if request.client else "unknown"
     for subject, ceiling in (

@@ -2,8 +2,8 @@
   "version": 1,
   "enforced": false,
   "status": "approved",
-  "targetCount": 38,
-  "note": "Verified brand garments (14 H&M, 11 Levi's, 13 Westside) registered and approved for virtual try-on.",
+  "targetCount": 90,
+  "note": "Approved research catalog entries for H&M, Levi's, Westside, Zara, ONLY, Marks & Spencer, and Vero Moda collections.",
   "reviewedAt": "2026-10-31T09:47:00.000000+00:00",
   "garments": [
     {
@@ -460,6 +460,630 @@
         "standing"
       ],
       "maximumSeconds": 16.5,
+      "status": "approved"
+    },
+    {
+      "id": "zara-brown-baggy-jeans",
+      "category": "jeans",
+      "photoType": "model",
+      "imageSha256": "6a23a43bb413a6f7b7b3c134784b9915eb353717c61a86b9e9e22884380b4166",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "zara-black-trousers",
+      "category": "trouser",
+      "photoType": "model",
+      "imageSha256": "59b27799062c5386ad8bcc432e7ad7252601d5dfc6bcc3409e55639afee8a393",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "zara-pink-baggy-trousers",
+      "category": "trouser",
+      "photoType": "model",
+      "imageSha256": "060e8b4f98fe0191c7fd39541357624ca2e07dec67168ac3927d603e1f5e5334",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "zara-pink-shirt",
+      "category": "shirt",
+      "photoType": "model",
+      "imageSha256": "36de02aa96e420fec36db204dcdc816ff5db74ab09f60a424f721a821811d2b8",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "zara-white-shirt",
+      "category": "shirt",
+      "photoType": "model",
+      "imageSha256": "f32c6fc058e33eb99598316ba0af6d6ba154c7369c4a44b534adf10c4ac4cd12",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "zara-casual-shirt",
+      "category": "shirt",
+      "photoType": "model",
+      "imageSha256": "74ed354a50c51508705d2b2f0676a34b77271f068915d131b1e2c0479dfa62b8",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "zara-cream-shirt",
+      "category": "shirt",
+      "photoType": "model",
+      "imageSha256": "36b0be3dfc7bbc82ca1fe0710f7c75e007713f3a6e656a0c0074ba0a3968f020",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "zara-oversized-sweatshirt",
+      "category": "sweater",
+      "photoType": "model",
+      "imageSha256": "52071af94924bb74453769ac321be898d96d827f916b55adb9d49990ba38f4cb",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "zara-crew-sweatshirt",
+      "category": "sweater",
+      "photoType": "model",
+      "imageSha256": "9970556289a5b9f969d0d4e0d98d3c448f921750b1d4bfdfe720d44d7a85b147",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "zara-gathered-top",
+      "category": "blouse",
+      "photoType": "model",
+      "imageSha256": "c671741dfd80de847b72fe0a5caf6f376ed10d4944a3c77bebf52a17db2bcd94",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "zara-tailored-suit-set",
+      "category": "jumpsuit",
+      "photoType": "model",
+      "imageSha256": "b705306cf113c1f09d3b3d510b47514156c1d237847f91ae6e183b2a5647b907",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "only-classic-skinny-jeans",
+      "category": "jeans",
+      "photoType": "model",
+      "imageSha256": "329d4ae561ef4839dfa940fbf7124a3ef69f312fa9ac6f0424a4b23cc414d74d",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "only-burgundy-shirt",
+      "category": "shirt",
+      "photoType": "model",
+      "imageSha256": "88cf507279e89ee65796738a861f8f470035d535cbe5c3591e5aedc86233f352",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "only-ribbed-top",
+      "category": "blouse",
+      "photoType": "model",
+      "imageSha256": "83e3cd11445b9fa57e3f7465f0f3886f612489a69a1af24eb821ba227023b442",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "only-cream-trousers",
+      "category": "trouser",
+      "photoType": "model",
+      "imageSha256": "fed4ed7f24d0450003c423e6eb2b5edaacd32b65c6263c29df7a59d3f3d50b11",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "only-floral-dress",
+      "category": "dress",
+      "photoType": "model",
+      "imageSha256": "1cab4a35c6757fc5cab5bfa01b665ea0df52668eeece4acb1a6ee5aebec24936",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "only-pink-trousers",
+      "category": "trouser",
+      "photoType": "model",
+      "imageSha256": "84a803d8d3011b86684686519aeac92fcca5e8993896893bf884f05e6e68b140",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "only-red-trousers",
+      "category": "trouser",
+      "photoType": "model",
+      "imageSha256": "2e5d7e2679e4ce917db645f9b4041b108c22112bcdca689d48487165f0339fbf",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "only-sleeveless-top",
+      "category": "blouse",
+      "photoType": "model",
+      "imageSha256": "dcb39576c0ff715c12789a4b4b7e9639a04bacfa1207c069873a93c38778b7d6",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "only-pink-top",
+      "category": "blouse",
+      "photoType": "model",
+      "imageSha256": "c5231fdbc9730098ab0e5318559b022df45a59a8184107f1dbf8d8067a93ce68",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "only-nude-top",
+      "category": "blouse",
+      "photoType": "model",
+      "imageSha256": "10ee85d1eec24adcb321f354c9442a8562e954877515b74df98f0697f6b7cf86",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "only-white-top",
+      "category": "blouse",
+      "photoType": "model",
+      "imageSha256": "bc607716023d1934a2dd97a851c7401000058016e2ce4a4b4a1ceeb41f0099ad",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "only-relaxed-top",
+      "category": "blouse",
+      "photoType": "model",
+      "imageSha256": "77cbcad5745f64b45806c706ccba2489a0db19477f2a99efcc4e34a48a584854",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "only-white-trousers",
+      "category": "trouser",
+      "photoType": "model",
+      "imageSha256": "6ccd6c6e85938c2a3ca186f4b2cd58ebf7a9941d7708bb856cdc9702bafefadb",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "marks-and-spencer-black-ankle-trousers",
+      "category": "trouser",
+      "photoType": "model",
+      "imageSha256": "79ad44003a6c45f586904c959522e7c4b83a532f3173b4daed734edbeb2ec41b",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "marks-and-spencer-brown-tapered-trousers",
+      "category": "trouser",
+      "photoType": "model",
+      "imageSha256": "f009b01976e6e5d1538fbf55f07f45ad2374ffb0b11040f1cc0b363c3357b7ae",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "marks-and-spencer-cream-wide-leg-trousers",
+      "category": "trouser",
+      "photoType": "model",
+      "imageSha256": "e58019a0cb4730544ac12cfa017eb7782b055e0045f0c0158307201c4110b2e8",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "marks-and-spencer-printed-midi-dress",
+      "category": "dress",
+      "photoType": "model",
+      "imageSha256": "7ac7f71bf441338254d60234bff55496bc69196ccaa7f623c025473095fd31ad",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "marks-and-spencer-pure-linen-shirt",
+      "category": "shirt",
+      "photoType": "model",
+      "imageSha256": "bff9ce4bc91e6e83cc37e8cb5cd695f4ff3ba30d9098d2b08b9d78e7ccaac4d5",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "marks-and-spencer-pink-tailored-trousers",
+      "category": "trouser",
+      "photoType": "model",
+      "imageSha256": "44154d7da9140b797c08754efcc20c3e28a9a3dad34b87e7f7d323790b7c0e7e",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "marks-and-spencer-crewneck-sweatshirt",
+      "category": "sweater",
+      "photoType": "model",
+      "imageSha256": "e112218184ef5303c6d57c94d733129ff70db1200b22f618d2c8f95f01f9fe3a",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "marks-and-spencer-relaxed-sweatshirt-02",
+      "category": "sweater",
+      "photoType": "model",
+      "imageSha256": "c9152a1fb633bfc0557119a15b14e90f4ba1ed8e52c708d6325fb38af33dfe80",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "marks-and-spencer-pink-cotton-sweatshirt",
+      "category": "sweater",
+      "photoType": "model",
+      "imageSha256": "25b9148095c82ff935536f75c07b900b850aa03226380a65444808a90323a514",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "marks-and-spencer-floral-wrap-dress",
+      "category": "dress",
+      "photoType": "model",
+      "imageSha256": "6cb3f2616a4c5900895f4b3e47c7c65616d7d7eecb9a9d0639b2f70ee897ce51",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "marks-and-spencer-maroon-blouse",
+      "category": "blouse",
+      "photoType": "model",
+      "imageSha256": "687d58c70a5011f207c4bba1dcb3f399746bbb967e760b930051f3e95639de52",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "marks-and-spencer-red-collared-shirt",
+      "category": "shirt",
+      "photoType": "model",
+      "imageSha256": "0bcb2ecf4109b82d8adc8582ed4b01c54370967fc1ea7baa7f1cc13f45a5c5e9",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "marks-and-spencer-cotton-rich-sweatshirt",
+      "category": "sweater",
+      "photoType": "model",
+      "imageSha256": "5b23fdfd80d346329766bbc49223750d7f66ca9b485d7c29b8ffc8ac5d284fd8",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "marks-and-spencer-fleece-sweatshirt-03",
+      "category": "sweater",
+      "photoType": "model",
+      "imageSha256": "bccabbe0099c19bb9549558d598d3172b50927c097eff32af3bf67812968165e",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "marks-and-spencer-everyday-top",
+      "category": "blouse",
+      "photoType": "model",
+      "imageSha256": "25a50ef02a314d788e4469850763ee15741dc80a682e4463e54c13a304795952",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "vero-moda-maroon-bootcut-jeans",
+      "category": "jeans",
+      "photoType": "model",
+      "imageSha256": "fab41323bd04080e1838f1c2edf3e403197880873f3629bc49a7c5fdd414f89e",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "vero-moda-dark-blue-skinny-jeans",
+      "category": "jeans",
+      "photoType": "model",
+      "imageSha256": "9d6f5ae7ed1edb3ae3d437884861fa8251210033cc701902d2c748485ce0e183",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "vero-moda-wrap-midi-dress",
+      "category": "dress",
+      "photoType": "model",
+      "imageSha256": "fda65b5294692c6d70fe079ef6636e112664715428f56c92e025b70a45fbc438",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "vero-moda-sleeveless-dress",
+      "category": "dress",
+      "photoType": "model",
+      "imageSha256": "29daf2295036f622aa3c90d377878d0b98c21af928d692dd3d01c8a4ddce8835",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "vero-moda-maroon-t-shirt",
+      "category": "t-shirt",
+      "photoType": "model",
+      "imageSha256": "485f1348166c0b0231673a055db82045fa13a6d4c1551a038eb07a1f3251d95c",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "vero-moda-pink-straight-trousers",
+      "category": "trouser",
+      "photoType": "model",
+      "imageSha256": "35f56ba3969c32994e2de282d13c3f87aa4c955683d8e3ecabab29336cc1cbc6",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "vero-moda-pink-cocktail-dress",
+      "category": "dress",
+      "photoType": "model",
+      "imageSha256": "e91ec23dc936c8fc378808a2760cc6b0c707dfa93e912f7b195093f00cc66cc1",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "vero-moda-pink-peplum-top",
+      "category": "blouse",
+      "photoType": "model",
+      "imageSha256": "f7c61085ec1307c78c27105454ed39963c7dd5d24fc923c17267e182c8dba094",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "vero-moda-printed-shirt",
+      "category": "shirt",
+      "photoType": "model",
+      "imageSha256": "9819ffe7c80139819048390ee2accc81f2ffb0b3c93c97d261d04ae3dd6a211c",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "vero-moda-tailored-suit-dress",
+      "category": "dress",
+      "photoType": "model",
+      "imageSha256": "548d1eb17afa5aa8bfa190d4ccc2fd307b8507d7dc75f676ec784a042e5adfdd",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "vero-moda-white-culotte-trousers",
+      "category": "trouser",
+      "photoType": "model",
+      "imageSha256": "c3452ad1d3a5f7bc33e0f57e3452d28f6d38fde9cb5bf99453a767ef5b588e94",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "vero-moda-white-cotton-t-shirt",
+      "category": "t-shirt",
+      "photoType": "model",
+      "imageSha256": "1a95d02a903daf5fdd1ad6d407adb58566e59cd6aa12d5848116ddf4e832164c",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
+      "status": "approved"
+    },
+    {
+      "id": "vero-moda-yellow-button-down-shirt",
+      "category": "shirt",
+      "photoType": "model",
+      "imageSha256": "cf981871783d51f3396363b56754a38e59a5e721efbb16f5f0541f9b212a1a23",
+      "testedPeople": [
+        "studio-person",
+        "vastraview_female_model"
+      ],
+      "maximumSeconds": 24.5,
       "status": "approved"
     }
   ]

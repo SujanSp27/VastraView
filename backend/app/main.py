@@ -398,7 +398,7 @@ def tryon(
     owner: str = Depends(authenticated_owner),
     accounts=Depends(account_db),
 ):
-    throttle(accounts, request, "tryon", owner, maximum=20)
+    throttle(accounts, request, "tryon", owner, maximum=200 if settings.environment == "development" else 20)
     if brandId is not None and db.get(Brand, brandId) is None:
         raise PipelineError("brand_missing", "The selected brand does not exist.", 404)
     if productId:

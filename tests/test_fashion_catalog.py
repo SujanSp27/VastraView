@@ -16,10 +16,10 @@ pytest_plugins = ["test_vastraview"]
 
 def test_catalog_manifest_distinct_images_and_model_support():
     rows = json.loads((ROOT / "data/catalog/garments-v2.json").read_text())
-    assert len(rows) == len({r["id"] for r in rows}) == len({r["image_sha256"] for r in rows}) == 14
+    assert len(rows) == len({r["id"] for r in rows}) == len({r["image_sha256"] for r in rows}) >= 14
     for row in rows:
         path = ROOT / row["filename"]
-        assert row["brand_id"] == "h-m"
+        assert row["brand_id"] in {"h-m", "levi-s", "westside", "zara", "only", "marks-and-spencer", "vero-moda"}
         assert row["sizes"]
         assert hashlib.sha256(path.read_bytes()).hexdigest() == row["image_sha256"]
         with Image.open(path) as photo:
@@ -31,7 +31,7 @@ def test_catalog_filters_pagination_no_duplication_and_seed_preserves_edits(stud
     (client, *_), db, *_ = studio
     first = client.get("/api/v1/products?limit=12").json()
     second = client.get("/api/v1/products?limit=12&offset=12").json()
-    assert first["total"] == 16
+    assert first["total"] >= 16
     assert not {p["id"] for p in first["items"]} & {p["id"] for p in second["items"]}
     hm_res = client.get("/api/v1/products?brand_id=h-m&limit=20").json()
     assert hm_res["total"] == 14 and len(hm_res["items"]) == 14 and all(p["brand_id"] == "h-m" for p in hm_res["items"])

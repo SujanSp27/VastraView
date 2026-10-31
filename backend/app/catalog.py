@@ -43,6 +43,7 @@ BRANDS = [
     "W",
     "Aurelia",
     "Raymond", "Manyavar", "Libas", "Max Fashion India", "Zudio", "Westside",
+    "ONLY", "Marks & Spencer", "Vero Moda",
 ]
 TAXONOMY = [
     ("t-shirt", "T-shirts", "tops", "t-shirt"),
@@ -222,6 +223,26 @@ def catalog_db(db=Depends(account_db)):
             {"_id": "westside"}, {"$set": {"name": "Westside", "partnership": True}}, upsert=True
         )
         db.catalog_versions.update_one({"_id": 7}, {"$set": {"installed": True}}, upsert=True)
+    if not db.catalog_versions.find_one({"_id": 8}):
+        manifest = ROOT / "data/catalog/garments-v2.json"
+        for entry in json.loads(manifest.read_text(encoding="utf-8")):
+            if any(entry["id"].startswith(prefix) for prefix in ("zara-", "only-", "marks-and-spencer-", "vero-moda-")):
+                row = {k: v for k, v in entry.items() if k != "id"}
+                row.update(created_at=datetime.now(timezone.utc), seed_version=8, active=True)
+                db.products.update_one({"_id": entry["id"]}, {"$set": row}, upsert=True)
+        db.catalog_brands.update_one(
+            {"_id": "zara"}, {"$set": {"name": "Zara", "partnership": True}}, upsert=True
+        )
+        db.catalog_brands.update_one(
+            {"_id": "only"}, {"$set": {"name": "ONLY", "partnership": True}}, upsert=True
+        )
+        db.catalog_brands.update_one(
+            {"_id": "marks-and-spencer"}, {"$set": {"name": "Marks & Spencer", "partnership": True}}, upsert=True
+        )
+        db.catalog_brands.update_one(
+            {"_id": "vero-moda"}, {"$set": {"name": "Vero Moda", "partnership": True}}, upsert=True
+        )
+        db.catalog_versions.update_one({"_id": 8}, {"$set": {"installed": True}}, upsert=True)
     return db
 
 

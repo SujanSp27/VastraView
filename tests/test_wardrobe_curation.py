@@ -41,7 +41,7 @@ def test_output_validation_requires_changed_pixels_and_matching_frame():
 
 
 def test_source_audit_uses_actual_decoder_and_supported_category():
-    row = next(r for r in catalog_rows() if r["id"] == "edit-a59f077d")
+    row = next(r for r in catalog_rows() if r.get("commercial_use") and r.get("category"))
     report = inspect_source(row)
     assert report["validImage"] and report["modelCategory"] == "tops"
     assert report["inferenceStatus"] == "not_tested"
@@ -81,7 +81,7 @@ def test_failed_api_job_keeps_structured_error_readable_in_report(tmp_path):
 
 
 def test_completed_image_alone_never_passes_visual_or_mask_review(tmp_path):
-    row = next(r for r in catalog_rows() if r["id"] == "edit-a59f077d")
+    row = next(r for r in catalog_rows() if r.get("commercial_use") and r.get("category"))
     source = inspect_source(row)
     output = png(np.zeros((128, 128, 3), dtype=np.uint8))
     (tmp_path / "after.png").write_bytes(output)
@@ -128,7 +128,7 @@ def test_catalog_payload_rejects_changed_image_category_and_unsupported(studio, 
     (client, *_), db, *_ = studio
     register(client)
     client.get("/api/v1/products")
-    row = db.products.find_one({"_id": "edit-a59f077d"})
+    row = db.products.find_one({"commercial_use": True, "category": {"$ne": None}})
     actual = (ROOT / "data/raw" / row["filename"]).read_bytes()
     wardrobe.validate_catalog_submission(db, row["_id"], actual, "t-shirt", "flat-lay")
     for image, category, photo in ((b"different", "t-shirt", "flat-lay"), (actual, "dress", "flat-lay"), (actual, "t-shirt", "model")):
@@ -148,7 +148,7 @@ def test_catalog_payload_rejects_changed_image_category_and_unsupported(studio, 
 def test_source_change_invalidates_approval(studio, monkeypatch):
     client, db = studio[0][0], studio[1]
     client.get("/api/v1/products")
-    row = db.products.find_one({"_id": "edit-a59f077d"})
+    row = db.products.find_one({"commercial_use": True, "category": {"$ne": None}})
     record = {"id": row["_id"], "category": row["category"], "photoType": row["photoType"],
               "imageSha256": "0" * 64, "testedPeople": ["studio", "mirror"], "maximumSeconds": 25}
     monkeypatch.setattr(wardrobe, "policy", lambda: {"enforced": True, "garments": [record]})

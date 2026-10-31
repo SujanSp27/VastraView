@@ -90,18 +90,18 @@ export default function CatalogPage() {
       }),
     ])
       .then(([b, c, f, q]) => {
-        const hmBrand = { id: "h-m", name: "H&M", product_count: 14 };
-        const levisBrand = { id: "levi-s", name: "Levi's", product_count: 11 };
-        const westsideBrand = { id: "westside", name: "Westside", product_count: 13 };
-        const customIds = new Set(["h-m", "levi-s", "westside"]);
-        const bFiltered = b.filter(
-          (item) =>
-            !customIds.has(item.id) &&
-            item.name.toLowerCase() !== "h&m" &&
-            item.name.toLowerCase() !== "levi's" &&
-            item.name.toLowerCase() !== "westside",
-        );
-        setBrands([hmBrand, levisBrand, westsideBrand, ...bFiltered]);
+        const featuredBrands = [
+          { id: "h-m", name: "H&M", product_count: 14 },
+          { id: "levi-s", name: "Levi's", product_count: 11 },
+          { id: "westside", name: "Westside", product_count: 13 },
+          { id: "zara", name: "Zara", product_count: 11 },
+          { id: "only", name: "ONLY", product_count: 13 },
+          { id: "marks-and-spencer", name: "Marks & Spencer", product_count: 15 },
+          { id: "vero-moda", name: "Vero Moda", product_count: 13 },
+        ];
+        const customIds = new Set(featuredBrands.map((x) => x.id));
+        const bFiltered = b.filter((item) => !customIds.has(item.id));
+        setBrands([...featuredBrands, ...bFiltered]);
         setCategories(
           c.length
             ? c
@@ -129,6 +129,10 @@ export default function CatalogPage() {
           { id: "h-m", name: "H&M", product_count: 14 },
           { id: "levi-s", name: "Levi's", product_count: 11 },
           { id: "westside", name: "Westside", product_count: 13 },
+          { id: "zara", name: "Zara", product_count: 11 },
+          { id: "only", name: "ONLY", product_count: 13 },
+          { id: "marks-and-spencer", name: "Marks & Spencer", product_count: 15 },
+          { id: "vero-moda", name: "Vero Moda", product_count: 13 },
         ]);
         setCategories([
           { id: "jeans", name: "Jeans", group: "bottoms", model_category: "jeans", support_note: "Single garment preview." },
@@ -184,7 +188,7 @@ export default function CatalogPage() {
             return;
           }
           const existingIds = new Set(data.items.map((i) => i.id));
-          const missing = fallbackList.filter((d) => !existingIds.has(d.id));
+          const missing = fallbackList.filter((d: Product) => !existingIds.has(d.id));
           const allItems = [...missing, ...data.items];
           setPage({
             items: allItems.slice(offset, offset + 18),
@@ -236,7 +240,15 @@ export default function CatalogPage() {
               ? "Explore our verified collection of 11 Levi's denim, shirts, and trousers, compare your size, and preview them with personalized virtual try-on."
               : brand === "westside"
               ? "Explore our verified collection of 13 Westside apparel pieces, compare your size, and preview them with personalized virtual try-on."
-              : "Explore verified garment collections from H&M, Levi's, and Westside, compare your size, and preview them with personalized virtual try-on."}
+              : brand === "zara"
+              ? "Explore our verified collection of 11 Zara garments, compare your size, and preview them with personalized virtual try-on."
+              : brand === "only"
+              ? "Explore our verified collection of 13 ONLY garments, compare your size, and preview them with personalized virtual try-on."
+              : brand === "marks-and-spencer"
+              ? "Explore our verified collection of 15 Marks & Spencer garments, compare your size, and preview them with personalized virtual try-on."
+              : brand === "vero-moda"
+              ? "Explore our verified collection of 13 Vero Moda garments, compare your size, and preview them with personalized virtual try-on."
+              : "Explore verified garment collections from Zara, H&M, Levi's, Marks & Spencer, ONLY, Vero Moda, and Westside, compare your size, and preview them with personalized virtual try-on."}
           </p>
         </div>
       </header>

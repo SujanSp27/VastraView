@@ -45,7 +45,7 @@
     "market": "IN",
     "is_demo": false,
     "coverage": [],
-    "description": "Discovery target. Only explicitly sourced category and market charts are eligible for recommendations."
+    "description": "Global high-street fashion label with European alpha sizing standards."
   },
   {
     "brand_id": "uniqlo",
@@ -222,5 +222,37 @@
     "is_demo": false,
     "coverage": [],
     "description": "Discovery target. Only explicitly sourced category and market charts are eligible for recommendations."
+  },
+  {
+    "brand_id": "only",
+    "brand_name": "ONLY",
+    "market": "IN",
+    "is_demo": false,
+    "coverage": [],
+    "description": "Contemporary women denim and casualwear brand by Bestseller."
+  },
+  {
+    "brand_id": "marks-and-spencer",
+    "brand_name": "Marks & Spencer",
+    "market": "IN",
+    "is_demo": false,
+    "coverage": [],
+    "description": "British heritage retailer offering refined contemporary fits and UK sizing."
+  },
+  {
+    "brand_id": "vero-moda",
+    "brand_name": "Vero Moda",
+    "market": "IN",
+    "is_demo": false,
+    "coverage": [],
+    "description": "Effortless, trend-focused women apparel and European sizing standards."
+  },
+  {
+    "brand_id": "westside",
+    "brand_name": "Westside",
+    "market": "IN",
+    "is_demo": false,
+    "coverage": [],
+    "description": "Indian premier retail fashion brand with diverse contemporary collections."
   }
 ]

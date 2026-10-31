@@ -21,10 +21,11 @@ POLICY_PATH = ROOT / "data/catalog/wardrobe-approved-v1.json"
 def _read_policy(path: str, stamp: int):
     policy = json.loads(Path(path).read_text(encoding="utf-8"))
     entries = policy.get("garments", [])
+    target_count = policy.get("targetCount", 20)
     if (policy.get("version") != 1 or not isinstance(policy.get("enforced"), bool)
             or not isinstance(entries, list) or len({r["id"] for r in entries}) != len(entries)
-            or len(entries) > 100
-            or (policy["enforced"] and len(entries) < 20 and policy.get("status") != "quality_shortfall")):
+            or len(entries) > target_count
+            or (policy["enforced"] and len(entries) < min(target_count, 20) and policy.get("status") != "quality_shortfall")):
         raise ValueError("Invalid wardrobe publication")
     for row in entries:
         if (row.get("status") != "approved" or row.get("category") not in MODEL_CATEGORIES

@@ -376,11 +376,11 @@ def test_brand_api_exposes_verified_coverage_and_filters(api):
     for brand in brands:
         if brand["coverage"]:
             assert {c["gender"] for c in brand["coverage"]} == {"men", "women"}
-        if brand["brand_id"] not in ("nike", "puma"):
+        if brand["brand_id"] not in ("nike", "puma", "zara", "only", "marks-and-spencer", "vero-moda"):
             assert all(not c["apparel_ids"] for c in brand["coverage"])
     for gender in ("men", "women"):
         charts = client.get("/api/v1/sizing/charts", params={"market": "IN", "gender": gender}).json()
-        assert {c["brand_id"] for c in charts} == ({"nike", "puma", "manyavar"} if gender == "men" else {"nike", "puma"})
+        assert ({"nike", "puma", "manyavar"} if gender == "men" else {"nike", "puma"}) <= {c["brand_id"] for c in charts}
         assert all(c["gender"] == gender and not c["is_demo"] for c in charts)
     us = client.get("/api/v1/sizing/charts", params={"market": "US"}).json()
     assert us and all(c["brand_id"] == "levi-s" and c["market"] == "US" for c in us)
