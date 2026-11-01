@@ -840,6 +840,10 @@ select,
   font-size: 9px;
   color: #657555;
 }
+.metric-evidence {
+  display: block;
+  margin-top: 6px;
+}
 .metric-edit {
   display: flex;
   align-items: center;

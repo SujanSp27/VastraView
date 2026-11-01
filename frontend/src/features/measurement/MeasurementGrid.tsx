@@ -152,7 +152,7 @@ export default function MeasurementGrid({
             </span>
             {values && (
               <small
-                className="metric-caption"
+                className="metric-caption metric-evidence"
                 aria-label={`${labels[key]} measurement status`}
               >
                 {manualMetrics.includes(key)
