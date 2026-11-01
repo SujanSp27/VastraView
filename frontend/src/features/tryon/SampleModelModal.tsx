@@ -17,15 +17,15 @@ export const SAMPLE_MODELS: SampleModel[] = [
     label: "Male Model",
     gender: "male",
     description: "Athletic male build in neutral studio lighting",
-    previewUrl: "/api/samples/person-male",
-    filename: "studio-person.jpg",
+    previewUrl: "/api/samples/person-male?v=2",
+    filename: "studio-person.png",
   },
   {
     id: "female",
     label: "Female Model",
     gender: "female",
     description: "Elegant female build in neutral studio lighting",
-    previewUrl: "/api/samples/person-female",
+    previewUrl: "/api/samples/person-female?v=2",
     filename: "vastraview_female_model.png",
   },
 ];

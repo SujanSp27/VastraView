@@ -57,7 +57,7 @@ export default function MeasurementWorkspace() {
     try {
       const endpoint = model.previewUrl;
       const filename = model.filename;
-      const mime = model.gender === "female" ? "image/png" : "image/jpeg";
+      const mime = filename.endsWith(".png") ? "image/png" : "image/jpeg";
       const defaultH = model.gender === "female" ? 168 : 180;
       const r = await fetch(endpoint);
       if (!r.ok)
@@ -180,7 +180,7 @@ export default function MeasurementWorkspace() {
               <div className="photo-demo">
                 {configuration?.sample_photos && (
                   <img
-                    src="/api/samples/person"
+                    src="/api/samples/person?v=2"
                     alt="Example of a front-facing full-body photo on a plain background"
                   />
                 )}

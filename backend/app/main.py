@@ -519,18 +519,24 @@ def sample(kind: str):
     }
     if kind not in files:
         raise HTTPException(404, "Sample not available")
-    target = ROOT / "data/raw" / files[kind]
-    if not target.is_file():
-        if "female" in kind:
-            target = ROOT / "assets/Model/vastraview_female_model.png"
-        elif "male" in kind or kind == "person":
+    if "female" in kind:
+        target = ROOT / "assets/Model/vastraview_female_model.png"
+        if not target.is_file():
+            target = ROOT / "data/raw" / files[kind]
+    elif "male" in kind or kind == "person":
+        target = ROOT / "assets/Model/studio-person.png"
+        if not target.is_file():
             target = ROOT / "assets/Model/studio-person.jpg"
+        if not target.is_file():
+            target = ROOT / "data/raw" / files[kind]
+    else:
+        target = ROOT / "data/raw" / files[kind]
     if not target.is_file():
         raise HTTPException(404, "Sample not available")
     return FileResponse(
         target,
         media_type="image/png" if target.suffix.lower() == ".png" else "image/jpeg",
-        headers={"Cache-Control": "public, max-age=86400"},
+        headers={"Cache-Control": "no-cache, must-revalidate"},
     )
 
 
