@@ -4,8 +4,8 @@ import numpy as np
 
 from ml.errors import PipelineError
 
-REGION_IDS = (3, 4, 5, 6, 7, 16)  # Official FASHN top/dress/skirt/pants/belt/torso.
-TARGETS = ("chest_circumference", "waist_circumference", "hip_circumference")
+REGION_IDS = (3, 4, 5, 6, 7, 14, 16)  # Official FASHN top/dress/skirt/pants/belt/legs/torso.
+TARGETS = ("chest_circumference", "waist_circumference", "hip_circumference", "thigh_circumference")
 
 
 def folded_forearm_at_section(points, valid, segment, boundary=None):
@@ -42,11 +42,13 @@ def region_mask(observation, labels):
     hip = observation.landmarks[[23, 24], 1].mean() * h
     if hip <= shoulder:
         raise PipelineError("torso_landmarks_uncertain", "Torso landmarks cannot locate these regions.")
+    has_knees = (observation.landmarks[[25, 26], 3] > .5).all() if observation.landmarks.shape[0] > 26 else False
+    knee = observation.landmarks[[25, 26], 1].mean() * h if has_knees else min(h, hip + (hip - shoulder))
     first = max(0, int(shoulder - .05 * (hip - shoulder)))
-    last = min(h, int(hip + .22 * (hip - shoulder)) + 5)
+    last = min(h, int(knee) + 5)
     mask = observation.mask.copy()
-    # Keep original scale/foot evidence and original limbs. This mask is only
-    # consulted for M2-M4 candidates; it never replaces M1/M5/M6.
+    # Keep original scale/foot evidence and shins/feet. This mask isolates
+    # M2-M5 candidates from arms and hands without altering height calibration.
     mask[first:last] &= np.isin(labels[first:last], REGION_IDS)
     return mask
 
@@ -79,7 +81,7 @@ def boundary_evidence(image, labels, segment, axis):
             # Majority strips tolerate subpixel/upsampled label boundaries.
             valid = (np.mean(np.isin(in_labels, REGION_IDS)) >= .6
                      and np.mean(np.isin(out_labels, (0, 12, 13))) >= .6
-                     and not np.isin(out_labels, (1, 2, 8, 9, 10, 11, 14, 15, 17)).any())
+                     and not np.isin(out_labels, (1, 2, 8, 9, 10, 11, 15, 17)).any())
             a = np.median(image[inside[:, 1], inside[:, 0]].astype(float), axis=0)
             b = np.median(image[outside[:, 1], outside[:, 0]].astype(float), axis=0)
             supported.append(bool(valid and np.linalg.norm(a - b) >= 8))

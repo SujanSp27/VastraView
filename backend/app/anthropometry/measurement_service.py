@@ -58,6 +58,21 @@ CHEST_FRACTIONS_MALE = (0.25, 0.28, 0.32, 0.36, 0.40)
 CHEST_FRACTIONS_FEMALE = (0.30, 0.33, 0.36, 0.40, 0.44)
 WAIST_FRACTIONS_MALE = (0.50, 0.54, 0.58, 0.62)
 WAIST_FRACTIONS_FEMALE = (0.46, 0.49, 0.52, 0.56)
+
+REASON_MESSAGES = {
+    "shoulder_landmarks_uncertain": "Shoulder position or viewing angle is uncertain. Face forward or enter this tape measurement.",
+    "torso_landmarks_uncertain": "Shoulders or hips cannot locate this torso region reliably. Retry a clear front view or enter a tape measurement.",
+    "hip_outline_unavailable": "The outer hip outline is obscured or incomplete. Keep your full hip outline visible. Avoid loose clothing covering your hip area.",
+    "ambiguous_thigh": "Both upper-thigh boundaries cannot be distinguished reliably. Keep your hands away from your thighs and leave a small gap between your legs.",
+    "hand_overlaps_thigh": "A hand or arm touches the upper-thigh outline, so its width cannot be isolated reliably. Keep your hands away from your thighs and leave a small gap between your legs.",
+    "leg_geometry_uncertain": "Leg landmarks, overlap or a bent stance prevent this estimate. Enter a tape measurement or stand upright with uncrossed legs.",
+    "implausible_geometry": "This region is inconsistent with the entered height. Confirm the height or enter a tape measurement.",
+    "arms_overlap_torso": "Arms overlap the visible torso outline; no body boundary was invented. Move arms slightly away or enter this tape measurement.",
+    "arm_landmarks_uncertain": "Elbows or wrists are unclear or outside the frame; arm separation cannot be verified. Keep both arms visible or enter this tape measurement.",
+    "wide_clothing_outline": "The visible outline is wide relative to the shoulders. Loose/layered clothing or body shape may explain it; confirm with a tape measure.",
+    "asymmetric_outline": "The two torso sides disagree. Clothing, an accessory or occlusion may affect the outline; confirm with a tape measure.",
+    "torso_segmentation_failed": "No reliable torso edge was found here. Try a contrasting background or enter this tape measurement.",
+}
 WAIST_FRACTIONS = (0.50, 0.48, 0.52)  # Local band only; do not substitute hips for waist.
 
 
@@ -249,7 +264,7 @@ def torso_sections(observation: PoseObservation, points: np.ndarray, region_labe
     return widths, fractions, quality, sections
 
 
-def thigh_sections(observation, points, scale, gender: str | None = None):
+def thigh_sections(observation, points, scale, *, region_labels=None, gender: str | None = None):
     valid = usable_landmarks(observation)
     widths, sections, sides = [], [], []
     for side, (hip, knee, other_hip, other_knee) in enumerate(((23, 25, 24, 26), (24, 26, 23, 25))):
@@ -265,7 +280,9 @@ def thigh_sections(observation, points, scale, gender: str | None = None):
         axis /= np.linalg.norm(axis)
         direction = np.array([axis[1], -axis[0]])
         other_axis = points[other_knee] - points[other_hip]
-        for fraction in (THIGH_FRACTION, .38, .42):
+        fractions = ((THIGH_FRACTION, .38, .42, .45, .48, .50, .52)
+                     if region_labels is not None else (THIGH_FRACTION, .38, .42))
+        for fraction in fractions:
             center = points[hip] * (1 - fraction) + points[knee] * fraction
             try:
                 width, segment = band_width(observation.mask, center, direction, axis)
@@ -282,11 +299,8 @@ def thigh_sections(observation, points, scale, gender: str | None = None):
                 record["samples"].append({"fraction": fraction, "width_pixels": width, "contains_other_leg": bool(joined),
                                           "arm_overlap": arm_overlap, "connected_hand_nearby": hand_overlap})
                 if arm_overlap or hand_overlap:
-                    # Nearby samples share the same uncertain hand contour.
-                    # Moving a few pixels past sparse finger landmarks cannot
-                    # establish a clean leg boundary. Retain the other leg only.
                     record["reason"] = "hand_overlaps_thigh"
-                    break
+                    continue
                 if joined:
                     continue
                 widths.append(width)
@@ -295,6 +309,8 @@ def thigh_sections(observation, points, scale, gender: str | None = None):
                 break
             except PipelineError as exc:
                 record["samples"].append({"fraction": fraction, "rejected": exc.code})
+        if record["status"] == "unavailable" and "reason" not in record:
+            record["reason"] = "ambiguous_thigh"
     hand_or_arm = any(sample.get("arm_overlap") or sample.get("connected_hand_nearby")
                       for side in sides for sample in side["samples"])
     reason = ("leg_geometry_uncertain" if not valid[[23, 24, 25, 26]].all() else
@@ -355,12 +371,15 @@ def estimate(observation: PoseObservation, height_cm: float, *, region_labels=No
         center = p[[23, 24]].mean(0)
         axis = np.array([0., 1.])
         try:
+            span = center - p[[11, 12]].mean(0)
+            hip_fractions = ((0., .04, .08, .12, .16, .20, .24) if gender == "female"
+                             else (0., .04, .08, .12, .16) if gender == "male"
+                             else (0., .04, .08, .12, .16, .20))
             if region_labels is not None:
-                span = center - p[[11, 12]].mean(0)
                 candidates = []
                 # Search visible outer hip levels near/below the joint level;
                 # joints locate the region but never supply its circumference.
-                for fraction in ((0., .04, .08, .12, .16, .20, .24) if gender == "female" else (0., .04, .08, .12, .16) if gender == "male" else (0., .04, .08, .12, .16, .20)):
+                for fraction in hip_fractions:
                     anchor = center + span * fraction
                     try:
                         width, line = band_width(observation.mask, anchor, np.array([1., 0.]), axis)
@@ -376,9 +395,9 @@ def estimate(observation: PoseObservation, height_cm: float, *, region_labels=No
                 hip_width, segment, center, hip_edge, hip_fraction = max(candidates, key=lambda item: item[0])
             else:
                 hip_width, segment = band_width(observation.mask, center, np.array([1., 0.]), axis)
-            if (intersects_arm(segment, p, np.where(valid, observation.landmarks[:, 3], 0))
+            if (region_labels is None and (intersects_arm(segment, p, np.where(valid, observation.landmarks[:, 3], 0))
                     or not (valid[[11, 12, 13, 14, 15, 16]].all()
-                            or uncertain_arm_is_separate(observation, p, center, valid))):
+                            or uncertain_arm_is_separate(observation, p, center, valid)))):
                 raise PipelineError("hip_outline_unavailable", "Arms obscure the hip outline.")
             values["hip_circumference"] = hip_width * scale * kappa["hip"]
             info = quality(observation, [23, 24], "hip_silhouette_projection_multiplier")
@@ -394,7 +413,7 @@ def estimate(observation: PoseObservation, height_cm: float, *, region_labels=No
             diagnostic("hip_section", width_pixels=hip_width, left_pixels=left, right_pixels=right, decision=info["status"])
         except PipelineError as exc:
             diagnostic("hip_section", decision="unavailable", reason=exc.code)
-    thigh_value, thigh_info, thigh_lines = thigh_sections(observation, p, scale, gender=gender)
+    thigh_value, thigh_info, thigh_lines = thigh_sections(observation, p, scale, region_labels=region_labels, gender=gender)
     values["thigh_circumference"] = thigh_value
     metric_quality["thigh_circumference"] = thigh_info
     sections.extend(thigh_lines)
@@ -416,20 +435,7 @@ def estimate(observation: PoseObservation, height_cm: float, *, region_labels=No
             values[key] = None
             metric_quality[key].update(status="unavailable", reason="implausible_geometry", requires_manual_review=True)
     review = [name for name, info in metric_quality.items() if info["requires_manual_review"]]
-    reasons = {
-        "shoulder_landmarks_uncertain": "Shoulder position or viewing angle is uncertain. Face forward or enter this tape measurement.",
-        "torso_landmarks_uncertain": "Shoulders or hips cannot locate this torso region reliably. Retry a clear front view or enter a tape measurement.",
-        "hip_outline_unavailable": "The outer hip outline is obscured or incomplete. Enter a hip tape measurement; hip joint spacing is not body width.",
-        "ambiguous_thigh": "Both upper-thigh boundaries cannot be distinguished reliably. Other measurements are retained; enter a thigh tape measurement or try a slightly separated stance.",
-        "hand_overlaps_thigh": "A hand or arm touches the upper-thigh outline, so its width cannot be isolated reliably. Move hands away from the legs or enter a thigh tape measurement; other measurements are retained.",
-        "leg_geometry_uncertain": "Leg landmarks, overlap or a bent stance prevent this estimate. Enter a tape measurement or stand upright with uncrossed legs.",
-        "implausible_geometry": "This region is inconsistent with the entered height. Confirm the height or enter a tape measurement.",
-        "arms_overlap_torso": "Arms overlap the visible torso outline; no body boundary was invented. Move arms slightly away or enter this tape measurement.",
-        "arm_landmarks_uncertain": "Elbows or wrists are unclear or outside the frame; arm separation cannot be verified. Keep both arms visible or enter this tape measurement.",
-        "wide_clothing_outline": "The visible outline is wide relative to the shoulders. Loose/layered clothing or body shape may explain it; confirm with a tape measure.",
-        "asymmetric_outline": "The two torso sides disagree. Clothing, an accessory or occlusion may affect the outline; confirm with a tape measure.",
-        "torso_segmentation_failed": "No reliable torso edge was found here. Try a contrasting background or enter this tape measurement.",
-    }
+    reasons = REASON_MESSAGES
     for name, info in metric_quality.items():
         if info["requires_manual_review"]:
             info.setdefault("message", reasons[info["reason"]])

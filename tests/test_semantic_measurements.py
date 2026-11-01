@@ -184,7 +184,11 @@ def test_real_male_and_female_photos_use_existing_cpu_parser(tmp_path):
                 if baseline["measurements"][key] is None:
                     assert scan.quality["metrics"][key]["requires_manual_review"]
                     assert scan.quality["metrics"][key]["boundary_evidence"]["accepted"]
-            for key in ("shoulder_width", "thigh_circumference", "inseam_length"):
+            if index == 3:
+                assert scan.measurements.thigh_circumference is not None
+                if baseline["measurements"]["thigh_circumference"] is None:
+                    assert scan.quality["metrics"]["thigh_circumference"]["requires_manual_review"]
+            for key in ("shoulder_width", "inseam_length"):
                 assert getattr(scan.measurements, key) == baseline["measurements"][key]
             assert scan.provenance["local_gpu_used"] is False
             if index == 0:
