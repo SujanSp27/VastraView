@@ -47,7 +47,7 @@ export default function SampleModelModal({
   currentFilename,
   loading = false,
   title = "Choose a sample model",
-  subtitle = "Select a professional studio model to preview and test instantly.",
+  subtitle = "Select a professional studio model to preview and test virtual try-ons or measurements.",
 }: SampleModelModalProps) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 

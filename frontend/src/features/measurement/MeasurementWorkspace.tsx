@@ -264,13 +264,13 @@ export default function MeasurementWorkspace() {
             disabled={busy}
           />
           <fieldset className="height-field" disabled={busy}>
-            <legend className="visually-hidden">Body type</legend>
+            <legend className="visually-hidden">Model type</legend>
             <div className="row-between">
-              <strong>Body type</strong>
+              <strong>Model type</strong>
               <div
                 className="segmented compact"
                 role="group"
-                aria-label="Body type selection"
+                aria-label="Model type selection"
               >
                 <button
                   type="button"
@@ -292,7 +292,7 @@ export default function MeasurementWorkspace() {
                 </button>
               </div>
             </div>
-            <small>Optional anatomical proportion calibration.</small>
+            <small>Optional anatomical proportion calibration for male or female models.</small>
           </fieldset>
           <div className="photo-checklist">
             <strong>A good photo makes a difference</strong>

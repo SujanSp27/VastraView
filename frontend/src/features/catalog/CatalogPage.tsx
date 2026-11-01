@@ -333,22 +333,24 @@ export default function CatalogPage() {
                       <ProductImage src={p.imageUrl} alt={p.name} />
                     </button>
                     <div className="product-info">
-                      <span className="eyebrow">{p.brand_name}</span>
-                      <h2>{p.name}</h2>
-                      <p>{p.description}</p>
-                      <div className="row-between">
-                        <small>
+                      <div className="product-info-top">
+                        <span className="product-brand eyebrow">{p.brand_name}</span>
+                        <h2 className="product-title" title={p.name}>{p.name}</h2>
+                        <p className="product-desc">{p.description}</p>
+                      </div>
+                      <div className="product-meta-row">
+                        <small className="product-meta">
                           {p.audience} · {p.colors.join(", ")}
                         </small>
-                        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                        <div className="product-card-actions">
                           <button
-                            className="text-button"
+                            className="text-button product-btn-details"
                             onClick={() => setSelected(p)}
                           >
                             Details
                           </button>
                           <button
-                            className="button small"
+                            className="button small product-btn-tryon"
                             style={{ padding: "6px 12px", fontSize: "13px" }}
                             onClick={() =>
                               navigate(

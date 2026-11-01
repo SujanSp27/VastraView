@@ -272,8 +272,8 @@ export default function TryOnStudio() {
   }
   return (
     <>
-      <div className="page-heading">
-        <div>
+      <div className="page-heading tryon-page-heading">
+        <div className="tryon-heading-text">
           <span className="eyebrow">03 / MEET YOUR NEXT LOOK</span>
           <h1>
             A new outfit.
@@ -287,7 +287,7 @@ export default function TryOnStudio() {
         <div className="tryon-heading-actions">
           {result && (
             <button
-              className="button secondary"
+              className="button secondary tryon-header-btn"
               aria-expanded={editing}
               aria-controls="tryon-inputs"
               onClick={() => setEditing((value) => !value)}
@@ -298,7 +298,7 @@ export default function TryOnStudio() {
           )}
           {configuration?.sample_photos && (
             <button
-              className="button secondary"
+              className="button secondary tryon-header-btn"
               disabled={busy || samplesBusy}
               onClick={() => setShowSampleModal(true)}
             >

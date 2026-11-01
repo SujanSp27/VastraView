@@ -4,9 +4,7 @@
       "C:\\Program Files\\nodejs\\node.exe",
       "C:\\Users\\Sujan\\OneDrive\\Desktop\\Avatar_Virtual_try_on\\frontend\\node_modules\\@playwright\\test\\cli.js",
       "test",
-      "e2e/results-comparison.spec.ts",
-      "-g",
-      "changing a garment"
+      "e2e/curated-catalog.spec.ts"
     ],
     "configFile": "C:\\Users\\Sujan\\OneDrive\\Desktop\\Avatar_Virtual_try_on\\frontend\\playwright.config.ts",
     "rootDir": "C:/Users/Sujan/OneDrive/Desktop/Avatar_Virtual_try_on/frontend/e2e",
@@ -104,14 +102,14 @@
   },
   "suites": [
     {
-      "title": "results-comparison.spec.ts",
-      "file": "results-comparison.spec.ts",
+      "title": "curated-catalog.spec.ts",
+      "file": "curated-catalog.spec.ts",
       "column": 0,
       "line": 0,
       "specs": [
         {
-          "title": "changing a garment invalidates the saved result; a new job retains mode and uses the new image",
-          "ok": true,
+          "title": "published wardrobe excludes rejected routes and shows an honest shortfall",
+          "ok": false,
           "tags": [],
           "tests": [
             {
@@ -124,23 +122,68 @@
                 {
                   "workerIndex": 0,
                   "parallelIndex": 0,
-                  "status": "passed",
-                  "duration": 5597,
-                  "errors": [],
+                  "status": "failed",
+                  "duration": 1708,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at C:\\Users\\Sujan\\OneDrive\\Desktop\\Avatar_Virtual_try_on\\frontend\\e2e\\curated-catalog.spec.ts:15:28",
+                    "location": {
+                      "file": "C:\\Users\\Sujan\\OneDrive\\Desktop\\Avatar_Virtual_try_on\\frontend\\e2e\\curated-catalog.spec.ts",
+                      "column": 28,
+                      "line": 15
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 13 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mrequest\u001b[33m.\u001b[39m\u001b[36mget\u001b[39m(\u001b[32m\"/api/v1/catalog/quality\"\u001b[39m)\n \u001b[90m 14 |\u001b[39m   )\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 15 |\u001b[39m   expect(quality\u001b[33m.\u001b[39menforced)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                            \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 16 |\u001b[39m   expect(quality\u001b[33m.\u001b[39mapprovedCount)\u001b[33m.\u001b[39mtoBeLessThanOrEqual(\u001b[35m20\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 17 |\u001b[39m   \u001b[36mconst\u001b[39m products \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m (\n \u001b[90m 18 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mrequest\u001b[33m.\u001b[39m\u001b[36mget\u001b[39m(\u001b[32m\"/api/v1/products?limit=48\"\u001b[39m)\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "C:\\Users\\Sujan\\OneDrive\\Desktop\\Avatar_Virtual_try_on\\frontend\\e2e\\curated-catalog.spec.ts",
+                        "column": 28,
+                        "line": 15
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n  13 |     await page.request.get(\"/api/v1/catalog/quality\")\n  14 |   ).json();\n> 15 |   expect(quality.enforced).toBe(true);\n     |                            ^\n  16 |   expect(quality.approvedCount).toBeLessThanOrEqual(20);\n  17 |   const products = await (\n  18 |     await page.request.get(\"/api/v1/products?limit=48\")\n    at C:\\Users\\Sujan\\OneDrive\\Desktop\\Avatar_Virtual_try_on\\frontend\\e2e\\curated-catalog.spec.ts:15:28"
+                    }
+                  ],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T10:18:48.187Z",
+                  "startTime": "2026-11-01T10:45:46.480Z",
                   "annotations": [],
-                  "attachments": []
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "C:\\Users\\Sujan\\OneDrive\\Desktop\\Avatar_Virtual_try_on\\frontend\\test-results\\curated-catalog-published--82048-d-shows-an-honest-shortfall\\test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "C:\\Users\\Sujan\\OneDrive\\Desktop\\Avatar_Virtual_try_on\\frontend\\test-results\\curated-catalog-published--82048-d-shows-an-honest-shortfall\\error-context.md"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "C:\\Users\\Sujan\\OneDrive\\Desktop\\Avatar_Virtual_try_on\\frontend\\test-results\\curated-catalog-published--82048-d-shows-an-honest-shortfall\\error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "C:\\Users\\Sujan\\OneDrive\\Desktop\\Avatar_Virtual_try_on\\frontend\\test-results\\curated-catalog-published--82048-d-shows-an-honest-shortfall\\trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "C:\\Users\\Sujan\\OneDrive\\Desktop\\Avatar_Virtual_try_on\\frontend\\e2e\\curated-catalog.spec.ts",
+                    "column": 28,
+                    "line": 15
+                  }
                 }
               ],
-              "status": "expected"
+              "status": "unexpected"
             }
           ],
-          "id": "723e605dbfb315118fa3-ad7f6f32dabf559be55b",
-          "file": "results-comparison.spec.ts",
-          "line": 342,
+          "id": "43c1b946988b1e0049a7-feebd089d9473b249eb0",
+          "file": "curated-catalog.spec.ts",
+          "line": 7,
           "column": 1
         }
       ]
@@ -148,11 +191,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-11-01T10:18:46.971Z",
-    "duration": 8353.322,
-    "expected": 1,
+    "startTime": "2026-11-01T10:45:45.352Z",
+    "duration": 4445.768,
+    "expected": 0,
     "skipped": 0,
-    "unexpected": 0,
+    "unexpected": 1,
     "flaky": 0
   }
 }
