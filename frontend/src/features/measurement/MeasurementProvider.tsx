@@ -6,6 +6,19 @@ import {
   type ReactNode,
 } from "react";
 import type { Extraction, Measurements, Metric } from "../../types/studio";
+
+const SESSION_KEY = "formfit:measurement_session";
+
+function loadSession() {
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
 type State = {
   file: File | undefined;
   setFile: (file: File | undefined) => void;
@@ -18,20 +31,78 @@ type State = {
   edited: boolean;
   setEdited: (value: boolean) => void;
   reviewedMetrics: Metric[];
+  manualMetrics: Metric[];
+  confirmedMetrics: Metric[];
   correctMeasurement: (key: Metric, value: number) => void;
+  confirmMeasurement: (key: Metric) => void;
+  confirmAll: () => void;
+  saved: boolean;
+  setSaved: (value: boolean) => void;
 };
+
 const Context = createContext<State | null>(null);
+
 export function MeasurementProvider({ children }: { children: ReactNode }) {
+  const initial = loadSession();
   const [file, rawSetFile] = useState<File>();
-  const [height, setHeight] = useState(172);
-  const [extraction, rawSetExtraction] = useState<Extraction>();
-  const [measurements, setMeasurements] = useState<Measurements>();
-  const [edited, setEdited] = useState(false);
-  const [reviewedMetrics, setReviewedMetrics] = useState<Metric[]>([]);
+  const [height, setHeight] = useState<number>(initial?.height ?? 172);
+  const [extraction, rawSetExtraction] = useState<Extraction | undefined>(
+    initial?.extraction,
+  );
+  const [measurements, setMeasurements] = useState<Measurements | undefined>(
+    initial?.measurements,
+  );
+  const [edited, setEdited] = useState<boolean>(initial?.edited ?? false);
+  const [manualMetrics, setManualMetrics] = useState<Metric[]>(
+    initial?.manualMetrics ?? [],
+  );
+  const [confirmedMetrics, setConfirmedMetrics] = useState<Metric[]>(
+    initial?.confirmedMetrics ?? [],
+  );
+  const [reviewedMetrics, setReviewedMetrics] = useState<Metric[]>(
+    initial?.reviewedMetrics ?? [],
+  );
+  const [saved, setSaved] = useState<boolean>(initial?.saved ?? false);
+
+  useEffect(() => {
+    if (measurements || extraction) {
+      try {
+        sessionStorage.setItem(
+          SESSION_KEY,
+          JSON.stringify({
+            height,
+            extraction,
+            measurements,
+            edited,
+            manualMetrics,
+            confirmedMetrics,
+            reviewedMetrics,
+            saved,
+          }),
+        );
+      } catch {
+        // quota or private browsing limits
+      }
+    }
+  }, [
+    height,
+    extraction,
+    measurements,
+    edited,
+    manualMetrics,
+    confirmedMetrics,
+    reviewedMetrics,
+    saved,
+  ]);
+
   const setExtraction = (value: Extraction | undefined) => {
     rawSetExtraction(value);
+    setManualMetrics([]);
+    setConfirmedMetrics([]);
     setReviewedMetrics([]);
+    setSaved(false);
   };
+
   const correctMeasurement = (key: Metric, value: number) => {
     setMeasurements((previous) => ({
       shoulder_width: 0,
@@ -43,23 +114,58 @@ export function MeasurementProvider({ children }: { children: ReactNode }) {
       ...previous,
       [key]: value,
     }));
+    setManualMetrics((previous) => [...new Set([...previous, key])]);
+    setConfirmedMetrics((previous) => previous.filter((m) => m !== key));
     setReviewedMetrics((previous) => [...new Set([...previous, key])]);
     setEdited(true);
+    setSaved(false);
   };
+
+  const confirmMeasurement = (key: Metric) => {
+    setConfirmedMetrics((previous) => [...new Set([...previous, key])]);
+    setManualMetrics((previous) => previous.filter((m) => m !== key));
+    setReviewedMetrics((previous) => [...new Set([...previous, key])]);
+  };
+
+  const confirmAll = () => {
+    if (!measurements) return;
+    const toConfirm = (
+      extraction?.quality?.requires_manual_review ?? []
+    ).filter((key) => measurements[key] > 0);
+    setConfirmedMetrics((previous) => [...new Set([...previous, ...toConfirm])]);
+    setReviewedMetrics((previous) => [...new Set([...previous, ...toConfirm])]);
+  };
+
   const setFile = (value: File | undefined) => {
     rawSetFile(value);
     setExtraction(undefined);
     setMeasurements(undefined);
     setEdited(false);
+    setManualMetrics([]);
+    setConfirmedMetrics([]);
+    setReviewedMetrics([]);
+    setSaved(false);
+    try {
+      sessionStorage.removeItem(SESSION_KEY);
+    } catch {
+      // quota or private browsing limits
+    }
   };
+
   useEffect(() => {
     const clear = () => {
       setFile(undefined);
       setHeight(172);
+      try {
+        sessionStorage.removeItem(SESSION_KEY);
+      } catch {
+        // quota or private browsing limits
+      }
     };
     window.addEventListener("formfit:clear-private", clear);
     return () => window.removeEventListener("formfit:clear-private", clear);
   }, []);
+
   return (
     <Context.Provider
       value={{
@@ -74,7 +180,13 @@ export function MeasurementProvider({ children }: { children: ReactNode }) {
         edited,
         setEdited,
         reviewedMetrics,
+        manualMetrics,
+        confirmedMetrics,
         correctMeasurement,
+        confirmMeasurement,
+        confirmAll,
+        saved,
+        setSaved,
       }}
     >
       {children}

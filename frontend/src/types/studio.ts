@@ -39,6 +39,9 @@ export type Extraction = {
           reason: string;
           message?: string;
           requires_manual_review: boolean;
+          source?: "image_estimated" | "unavailable";
+          evidence_confidence?: number;
+          confidence_basis?: string;
         }
       >
     >;

@@ -48,6 +48,7 @@ The platform eliminates expensive local GPU requirements and third-party SaaS AP
 - **Quality Gates**: Automatically rejects invalid inferences (e.g., severe limb occlusion or generations that leave >20% unresolved exposed skin).
 
 ### 2. Approximate Body Measurements (Local CPU)
+- **Guarded region recovery**: Missing chest, waist and hip estimates can use the installed CPU human parser with bilateral image-edge checks to separate touching arms from clothing. Valid measurements are retained. Recovered estimates require tape review before sizing; evidence scores are not accuracy percentages. See [v6 verification and limitations](docs/measurement-torso-hip-v6.md) and the [v5 baseline](docs/measurement-refinement-v5.md).
 - **MediaPipe Tasks Pose Landmarker Full**: Fast, zero-GPU body landmark extraction on local CPU.
 - **33 Keypoints Analyzed**: Uses image coordinates, visibility (>0.65) and available presence scores for each measurement's dependencies. An uncertain heel or thigh does not automatically invalidate unrelated regions.
 - **6 Measurement Fields**: Reports supported estimates for **Shoulder Width**, **Chest Circumference**, **Waist Circumference**, **Hip Circumference**, **Thigh Circumference**, and **Inseam**. Unreliable dimensions remain explicitly unavailable with an explanation. Single-view circumference multipliers and anatomical proxies are not calibrated tape measurements.

@@ -13,7 +13,7 @@ RECOVERABLE_REASONS = {
     "arms_overlap_torso", "torso_segmentation_failed", "hip_outline_unavailable",
     "hand_overlaps_thigh", "ambiguous_thigh",
 }
-MASK_SUFFIXES = ("_native_mask.png", "_image_guided_mask.png")
+MASK_SUFFIXES = ("_native_mask.png", "_image_guided_mask.png", "_semantic_mask.png", "_semantic_labels.png")
 
 
 def needs_refinement(result):

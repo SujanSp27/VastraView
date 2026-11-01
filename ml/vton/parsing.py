@@ -105,6 +105,8 @@ class FashnHumanParser:
     """Lazy CPU parser; no inference call downloads assets or executes remote code."""
 
     version = f"fashn-human-parser@{MODEL_REVISION}"
+    _shared_cache: dict[Path, object] = {}
+    _cache_lock = Lock()
 
     def __init__(self, checkpoint_dir: Path | str = ROOT / "assets/vton/parser"):
         self.checkpoint_dir = Path(checkpoint_dir).resolve()
@@ -120,68 +122,77 @@ class FashnHumanParser:
     def _load(self):
         if self._parser is not None:
             return self._parser
-        if not self.available():
-            raise PipelineError(
-                "parser_unavailable",
-                "Local semantic parser assets are missing. Run scripts/download_parser.py.",
-                503,
-            )
-        weights = self.checkpoint_dir / "model.safetensors"
-        digest = hashlib.sha256()
-        with weights.open("rb") as stream:
-            for chunk in iter(lambda: stream.read(1024 * 1024), b""):
-                digest.update(chunk)
-        if digest.hexdigest() != CHECKPOINT_SHA256:
-            raise PipelineError(
-                "parser_checkpoint_invalid", "Semantic parser checkpoint checksum mismatch.", 503
-            )
-        if (
-            hashlib.sha256((self.checkpoint_dir / "config.json").read_bytes()).hexdigest()
-            != CONFIG_SHA256
-        ):
-            raise PipelineError(
-                "parser_checkpoint_invalid", "Semantic parser configuration checksum mismatch.", 503
-            )
-        # Imports are intentionally deferred so missing research dependencies do
-        # not prevent unrelated APIs or pure semantic-mask tests from starting.
-        try:
-            from ml.vton.runtime import configure_local_cache
-
-            configure_local_cache()
-            import torch
-            from transformers import SegformerForSemanticSegmentation
-
-            from ml.vton.vendor.fashn_human_parser.parser import FashnHumanParser as UpstreamParser
-        except ImportError as exc:
-            raise PipelineError(
-                "parser_unavailable", "Semantic parser dependencies are not installed.", 503
-            ) from exc
-        torch.set_num_threads(2)
-        parser = UpstreamParser.__new__(UpstreamParser)
-        parser.device = "cpu"
-        try:
-            parser.model = (
-                SegformerForSemanticSegmentation.from_pretrained(
-                    str(self.checkpoint_dir),
-                    local_files_only=True,
-                    use_safetensors=True,
-                    trust_remote_code=False,
+        with self._cache_lock:
+            if self._parser is not None:
+                return self._parser
+            if self.checkpoint_dir in self._shared_cache:
+                self._parser = self._shared_cache[self.checkpoint_dir]
+                return self._parser
+            if not self.available():
+                raise PipelineError(
+                    "parser_unavailable",
+                    "Local semantic parser assets are missing. Run scripts/download_parser.py.",
+                    503,
                 )
-                .to("cpu")
-                .eval()
-            )
-        except (OSError, ValueError, RuntimeError) as exc:
-            raise PipelineError(
-                "parser_checkpoint_invalid",
-                "The local semantic parser could not load its verified checkpoint.",
-                503,
-            ) from exc
-        if parser.model.config.num_labels != 18:
-            raise PipelineError(
-                "parser_checkpoint_invalid", "Expected the official 18-class FASHN parser.", 503
-            )
-        self._parser = parser
-        return parser
+            weights = self.checkpoint_dir / "model.safetensors"
+            digest = hashlib.sha256()
+            with weights.open("rb") as stream:
+                for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                    digest.update(chunk)
+            if digest.hexdigest() != CHECKPOINT_SHA256:
+                raise PipelineError(
+                    "parser_checkpoint_invalid", "Semantic parser checkpoint checksum mismatch.", 503
+                )
+            if (
+                hashlib.sha256((self.checkpoint_dir / "config.json").read_bytes()).hexdigest()
+                != CONFIG_SHA256
+            ):
+                raise PipelineError(
+                    "parser_checkpoint_invalid", "Semantic parser configuration checksum mismatch.", 503
+                )
+            # Imports are intentionally deferred so missing research dependencies do
+            # not prevent unrelated APIs or pure semantic-mask tests from starting.
+            try:
+                from ml.vton.runtime import configure_local_cache
+
+                configure_local_cache()
+                import torch
+                from transformers import SegformerForSemanticSegmentation
+
+                from ml.vton.vendor.fashn_human_parser.parser import (
+                    FashnHumanParser as UpstreamParser,
+                )
+            except ImportError as exc:
+                raise PipelineError(
+                    "parser_unavailable", "Semantic parser dependencies are not installed.", 503
+                ) from exc
+            torch.set_num_threads(2)
+            parser = UpstreamParser.__new__(UpstreamParser)
+            parser.device = "cpu"
+            try:
+                parser.model = (
+                    SegformerForSemanticSegmentation.from_pretrained(
+                        str(self.checkpoint_dir),
+                        local_files_only=True,
+                        use_safetensors=True,
+                        trust_remote_code=False,
+                    )
+                    .to("cpu")
+                    .eval()
+                )
+            except (OSError, ValueError, RuntimeError) as exc:
+                raise PipelineError(
+                    "parser_checkpoint_invalid",
+                    "The local semantic parser could not load its verified checkpoint.",
+                    503,
+                ) from exc
+            if parser.model.config.num_labels != 18:
+                raise PipelineError(
+                    "parser_checkpoint_invalid", "Expected the official 18-class FASHN parser.", 503
+                )
+            self._shared_cache[self.checkpoint_dir] = parser
+            self._parser = parser
+            return parser
 
     def predict(self, rgb: np.ndarray) -> HumanParse:
         rgb = _rgb(rgb)

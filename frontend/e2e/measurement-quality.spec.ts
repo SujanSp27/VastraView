@@ -1,10 +1,74 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { mkdirSync } from "node:fs";
+import { existsSync, mkdirSync } from "node:fs";
 
 test.use({ actionTimeout: 15000 });
 const evidence = "../experiments/torso-validation";
 mkdirSync(evidence, { recursive: true });
+
+test("real arm-down photo recovers torso and hip estimates with a visible review gate", async ({
+  page,
+}) => {
+  const source =
+    "../data/processed/1fbe7846-eb2d-4b22-a8ef-0f79e94c48c0/original-person.png";
+  test.skip(
+    !existsSync(source),
+    "Private permitted regression photo is not installed",
+  );
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("/measure");
+  await page.locator('input[type="file"]').setInputFiles(source);
+  await page.getByLabel("Height in centimeters").fill("172");
+  const response = page.waitForResponse(
+    (r) => r.url().endsWith("/measurements/extract"),
+    { timeout: 90000 },
+  );
+  await page
+    .getByRole("button", { name: "Extract measurements", exact: true })
+    .click();
+  const extracted = await response;
+  expect(extracted.status()).toBe(200);
+  const scan = await extracted.json();
+  try {
+    expect(scan.provenance.method).toBe("landmark-silhouette-projection-v6");
+    for (const [key, label] of [
+      ["chest_circumference", "Chest circumference"],
+      ["waist_circumference", "Waist circumference"],
+      ["hip_circumference", "Hip circumference"],
+    ]) {
+      expect(scan.measurements[key]).toBeGreaterThan(0);
+      expect(scan.quality.metrics[key].requires_manual_review).toBe(true);
+      const card = page.locator(".metric-card").filter({ hasText: label });
+      await expect(card.locator(".metric-value")).toContainText(
+        scan.measurements[key].toFixed(1),
+      );
+      await expect(
+        card.getByLabel(`${label} measurement status`),
+      ).toContainText("not accuracy");
+    }
+    await expect(
+      page.getByRole("button", { name: "Save measurements", exact: true }),
+    ).toBeDisabled();
+    await page.screenshot({
+      path: `${evidence}/semantic-v6-live.png`,
+      fullPage: true,
+    });
+    await page.setViewportSize({ width: 390, height: 844 });
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    expect(errors).toEqual([]);
+  } finally {
+    expect(
+      (
+        await page.request.delete(`/api/v1/measurements/${scan.measurement_id}`)
+      ).status(),
+    ).toBe(204);
+  }
+});
 
 test("retry keeps photo and height, then actual CPU extraction feeds owner-scoped sizing", async ({
   page,
@@ -54,7 +118,7 @@ test("retry keeps photo and height, then actual CPU extraction feeds owner-scope
   );
   await page.getByRole("button", { name: "Retry", exact: true }).click();
   const scan = await (await extracted).json();
-  expect(scan.provenance.method).toBe("landmark-silhouette-projection-v5");
+  expect(scan.provenance.method).toBe("landmark-silhouette-projection-v6");
   expect(scan.geometry.height_cm).toBe(180);
   expect(scan.quality.requires_manual_review).toEqual([]);
   await expect(
@@ -365,6 +429,8 @@ test("recovered numeric estimate remains review-required until a manual correcti
             chest_circumference: {
               status: "review_required",
               confidence: null,
+              evidence_confidence: 0.8,
+              source: "image_estimated",
               requires_manual_review: true,
               reason: "image_refinement_estimate",
               message:
@@ -386,6 +452,9 @@ test("recovered numeric estimate remains review-required until a manual correcti
   await expect(chest.locator(".metric-value")).toContainText("98.0");
   await expect(chest).toContainText("Image-guided refinement");
   await expect(
+    chest.getByLabel("Chest circumference measurement status"),
+  ).toContainText("evidence score 80/100 (not accuracy)");
+  await expect(
     page.getByRole("button", { name: "Save measurements", exact: true }),
   ).toBeDisabled();
   await page.getByLabel("Display measurements in").selectOption("in");
@@ -402,6 +471,151 @@ test("recovered numeric estimate remains review-required until a manual correcti
   await expect(chest.locator(".metric-value")).toContainText("96.5");
   await expect(chest).toContainText("Manually corrected");
   await expect(
+    chest.getByLabel("Chest circumference measurement status"),
+  ).toContainText("Manual entry");
+  await expect(
     page.getByRole("button", { name: "Save measurements", exact: true }),
   ).toBeEnabled();
+  await expect(
+    page.getByRole("link", { name: "Find my size", exact: true }),
+  ).not.toHaveClass(/disabled-link/);
+});
+
+test("confirming estimates enables Find My Size and preserves values on refresh", async ({
+  page,
+}) => {
+  await page.route("**/api/v1/measurements/extract", (route) =>
+    route.fulfill({
+      json: {
+        measurement_id: "pose_" + "d".repeat(32),
+        scale_factor: 0.2,
+        measurements: {
+          shoulder_width: 38,
+          chest_circumference: 92,
+          waist_circumference: 78,
+          hip_circumference: 96,
+          thigh_circumference: 52,
+          inseam_length: 82,
+        },
+        landmarks_normalized: Array.from({ length: 33 }, () => [
+          0.5, 0.5, 0, 0.99,
+        ]),
+        annotated_image_url: "/unused-test-annotation.png",
+        geometry: { image_size: [600, 1000], height_cm: 172 },
+        warnings: ["Circumferences are estimates."],
+        quality: {
+          estimates_only: true,
+          minimum_key_landmark_visibility: 0.99,
+          status: "review_required",
+          requires_manual_review: [
+            "chest_circumference",
+            "waist_circumference",
+            "hip_circumference",
+          ],
+          metrics: {
+            shoulder_width: {
+              status: "estimated",
+              reason: "observed_geometry",
+              requires_manual_review: false,
+              evidence_confidence: 1.0,
+            },
+            chest_circumference: {
+              status: "review_required",
+              confidence: null,
+              evidence_confidence: 0.85,
+              requires_manual_review: true,
+              reason: "image_refinement_estimate",
+              message:
+                "Estimated from visible clothing edges. Confirm with a tape measure.",
+            },
+            waist_circumference: {
+              status: "review_required",
+              confidence: null,
+              evidence_confidence: 0.85,
+              requires_manual_review: true,
+              reason: "image_refinement_estimate",
+              message:
+                "Estimated from visible clothing edges. Confirm with a tape measure.",
+            },
+            hip_circumference: {
+              status: "review_required",
+              confidence: null,
+              evidence_confidence: 0.85,
+              requires_manual_review: true,
+              reason: "image_refinement_estimate",
+              message:
+                "Estimated from visible clothing edges. Confirm with a tape measure.",
+            },
+            thigh_circumference: {
+              status: "estimated",
+              reason: "observed_geometry",
+              requires_manual_review: false,
+              evidence_confidence: 0.9,
+            },
+            inseam_length: {
+              status: "estimated",
+              reason: "observed_geometry",
+              requires_manual_review: false,
+              evidence_confidence: 0.95,
+            },
+          },
+        },
+      },
+    }),
+  );
+
+  await page.goto("/measure");
+  await page.getByRole("button", { name: "Try a sample", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Extract measurements", exact: true })
+    .click();
+
+  const findSizeLink = page.getByRole("link", {
+    name: "Find my size",
+    exact: true,
+  });
+
+  // Initially review required: Find My Size is disabled
+  await expect(findSizeLink).toHaveClass(/disabled-link/);
+  await expect(page.locator(".action-bar-status")).toContainText(
+    "Review needed",
+  );
+
+  // Confirm one estimate (Chest)
+  const chest = page
+    .locator(".metric-card")
+    .filter({ hasText: "Chest circumference" });
+  await chest.getByRole("button", { name: /Confirm/ }).click();
+  await expect(chest).toContainText("Confirmed estimate");
+
+  // Waist and Hip still need review
+  await expect(findSizeLink).toHaveClass(/disabled-link/);
+
+  // Confirm remaining estimates via "Confirm all estimates"
+  await page
+    .getByRole("button", { name: "Confirm all estimates", exact: true })
+    .click();
+
+  // Now all estimates are confirmed
+  await expect(findSizeLink).not.toHaveClass(/disabled-link/);
+  await expect(page.locator(".action-bar-status")).toContainText(
+    "Measurements approved",
+  );
+  await expect(
+    page.getByRole("button", { name: "Save measurements", exact: true }),
+  ).toBeEnabled();
+
+  // Refresh page: verify measurements and approved status persist from session
+  await page.reload();
+  await expect(findSizeLink).not.toHaveClass(/disabled-link/);
+  const reloadedChest = page
+    .locator(".metric-card")
+    .filter({ hasText: "Chest circumference" });
+  await expect(reloadedChest.locator(".metric-value")).toContainText("92.0");
+  await expect(reloadedChest).toContainText("Confirmed estimate");
+
+  // Click Find my size: navigates to /sizing
+  await findSizeLink.click();
+  await expect(page).toHaveURL(/\/sizing$/);
+  await expect(page.getByText("Your next size")).toBeVisible();
 });

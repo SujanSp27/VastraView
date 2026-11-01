@@ -13,6 +13,7 @@ from backend.app.anthropometry.measurement_service import MeasurementService
 from backend.app.anthropometry.pose_adapter import MediaPipePose
 from backend.app.config import settings
 from ml.errors import PipelineError
+from ml.vton.parsing import FashnHumanParser
 
 
 def main():
@@ -31,7 +32,7 @@ def main():
         parser.error("Extra person images must be existing files inside this workspace")
     root.mkdir(parents=True, exist_ok=True)
     detector = MediaPipePose(settings.measurement_model_path)
-    service = MeasurementService(detector, root / "private")
+    service = MeasurementService(detector, root / "private", semantic_parser=FashnHumanParser())
     manifest = json.loads((ROOT / "data/regression/measurement-regions-v4.json").read_text(encoding="utf-8"))
     rows = []
     try:

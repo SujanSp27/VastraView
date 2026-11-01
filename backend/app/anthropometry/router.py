@@ -46,9 +46,12 @@ measurement_capacity = BoundedSemaphore(1)
 
 @lru_cache(maxsize=1)
 def get_measurement_service() -> MeasurementService:
+    from ml.vton.parsing import FashnHumanParser
+
     return MeasurementService(
         MediaPipePose(settings.measurement_model_path),
         settings.measurement_output_root / "annotated",
+        semantic_parser=FashnHumanParser(),
     )
 
 

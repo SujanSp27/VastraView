@@ -8,6 +8,18 @@ VISIBILITY_THRESHOLD = .65
 PRESENCE_THRESHOLD = .5  # Same as the configured Tasks pose presence threshold.
 
 
+def annotate_evidence(values, metrics):
+    """A reproducible evidence score; explicitly not calibrated measurement accuracy."""
+    for key, info in metrics.items():
+        available = values[key] is not None
+        support = min(info.get("boundary_evidence", {}).get("boundary_support", [1.]))
+        presence = info.get("landmark_presence_min")
+        landmark = min(info["landmark_visibility_min"], presence if presence is not None else 1.)
+        info.update(source="image_estimated" if available else "unavailable",
+                    evidence_confidence=round(min(landmark, support), 3) if available else 0.,
+                    confidence_basis="Minimum contributing landmark visibility/presence and bilateral edge support where tested; not anthropometric accuracy.")
+
+
 def usable(observation) -> np.ndarray:
     landmarks = observation.landmarks
     valid = ((landmarks[:, 3] > VISIBILITY_THRESHOLD)

@@ -125,6 +125,7 @@ export default function MeasurementWorkspace() {
             : "photo-estimate",
         state.file ? await thumbnail(state.file) : undefined,
       );
+      state.setSaved(true);
       notify("Measurements saved to your private profile.");
     } catch (e) {
       setError((e as Error).message);
@@ -307,12 +308,20 @@ export default function MeasurementWorkspace() {
           role="status"
           aria-label="Measurement quality"
         >
-          <strong>Some measurements need review</strong>
+          <div className="row-between">
+            <strong>Some measurements need review</strong>
+            <button
+              type="button"
+              className="button secondary small"
+              onClick={() => state.confirmAll()}
+            >
+              <Check size={14} /> Confirm all estimates
+            </button>
+          </div>
           <p>
             Your pose was detected, but the clothing outline cannot provide all
-            body dimensions reliably. Edit the flagged dimensions using a tape
-            measure, or retry with arms slightly apart and close-fitting
-            clothing.
+            body dimensions reliably. Confirm the estimates if satisfied, or edit
+            with a tape measure.
           </p>
           {needsReview.map((key) => (
             <p key={key}>
@@ -331,7 +340,10 @@ export default function MeasurementWorkspace() {
         values={state.measurements}
         quality={state.extraction?.quality}
         reviewed={state.reviewedMetrics}
+        manualMetrics={state.manualMetrics}
+        confirmedMetrics={state.confirmedMetrics}
         onChange={(values, key) => state.correctMeasurement(key, values[key])}
+        onConfirm={(key) => state.confirmMeasurement(key)}
       />
       {state.extraction && (
         <details className="estimate-details">
@@ -342,10 +354,31 @@ export default function MeasurementWorkspace() {
         </details>
       )}
       <div className="action-bar">
-        <p>
-          <strong>Your numbers, your control.</strong> Correct any estimate with
-          your tape measurements.
-        </p>
+        <div>
+          <p>
+            <strong>Your numbers, your control.</strong> Confirm estimates or enter
+            tape measurements.
+          </p>
+          {state.measurements && (
+            <p className="action-bar-status">
+              {needsReview.length > 0 ? (
+                <span className="status-note status-warning">
+                  Review needed: Confirm or edit{" "}
+                  {needsReview.map((key) => metricLabels[key]).join(", ")}{" "}
+                  to enable size matching.
+                </span>
+              ) : !validMeasurements(state.measurements) ? (
+                <span className="status-note status-warning">
+                  Missing values: Enter tape measurements for all dimensions before proceeding.
+                </span>
+              ) : (
+                <span className="status-note status-ready">
+                  <Check size={13} /> Measurements approved and ready for size matching.
+                </span>
+              )}
+            </p>
+          )}
+        </div>
         <div className="actions">
           <button
             className="button secondary"
@@ -356,7 +389,17 @@ export default function MeasurementWorkspace() {
             }
             onClick={() => void save()}
           >
-            {saving ? "Saving…" : "Save measurements"}
+            {saving ? (
+              <>
+                <LoaderCircle className="spin" size={15} /> Saving…
+              </>
+            ) : state.saved ? (
+              <>
+                <Check size={15} /> Saved
+              </>
+            ) : (
+              "Save measurements"
+            )}
           </button>
           <Link
             className={`button ${!validMeasurements(state.measurements) || needsReview.length ? "disabled-link" : ""}`}
@@ -365,8 +408,9 @@ export default function MeasurementWorkspace() {
             }
             to="/sizing"
             onClick={(e) => {
-              if (!validMeasurements(state.measurements) || needsReview.length)
+              if (!validMeasurements(state.measurements) || needsReview.length) {
                 e.preventDefault();
+              }
             }}
           >
             Find my size <ArrowRight size={17} />

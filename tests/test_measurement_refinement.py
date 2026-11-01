@@ -1,5 +1,6 @@
 """Real colour refinement with synthetic geometry; no anthropometric accuracy claims."""
 
+import hashlib
 import io
 import json
 from copy import deepcopy
@@ -14,6 +15,7 @@ from backend.app.anthropometry.measurement_refinement import guard_refined_mask,
 from backend.app.anthropometry.measurement_service import MeasurementService, estimate
 from backend.app.anthropometry.pose_adapter import refine_mask
 from backend.app.anthropometry.router import get_measurement_service
+from backend.app.config import ROOT
 from backend.app.main import app
 from ml.errors import PipelineError
 
@@ -204,3 +206,38 @@ def test_lower_region_retry_does_not_depend_on_a_chest_failure(observation, tmp_
     for other, value in baseline["measurements"].items():
         if other != key:
             assert getattr(response.measurements, other) == value
+
+
+@pytest.mark.integration
+def test_saved_floral_mask_replay_never_uses_annotation_as_original():
+    """Optional private regression: geometry replay only, no model inference.
+
+    The original upload is not retained. The annotated image is deliberately
+    never decoded as a source photograph or passed to segmentation.
+    """
+    from backend.app.anthropometry.pose_adapter import PoseObservation
+
+    folder = ROOT / "data/processed/measurements/annotated"
+    identifier = "pose_06526316f8da40e58fb480f8eb653c56"
+    records = [folder / f"{identifier}{suffix}" for suffix in (".json", "_mask.png", ".png")]
+    if not all(path.is_file() for path in records):
+        pytest.skip("Private floral-dress pose/mask regression artifacts not present")
+    before = [hashlib.sha256(path.read_bytes()).hexdigest() for path in records]
+    saved = json.loads(records[0].read_text())
+    with Image.open(records[1]) as image:
+        mask = np.asarray(image.convert("L")) > 0
+    observation = PoseObservation(
+        image=np.zeros((*mask.shape, 3), dtype=np.uint8),  # Shape carrier only.
+        landmarks=np.array(saved["landmarks_normalized"]),
+        world_landmarks=np.array(saved["landmarks_world_meters"]),
+        mask=mask, presence=np.array(saved["landmark_presence"]),
+    )
+    replay, _ = estimate(observation, saved["geometry"]["height_cm"])
+    assert replay["measurements"] == saved["measurements"]
+    assert replay["measurements"]["shoulder_width"] == 36.7
+    assert replay["measurements"]["inseam_length"] == 95.2
+    for region in ("chest", "waist", "hip", "thigh"):
+        key = region + "_circumference"
+        assert replay["measurements"][key] is None
+        assert replay["quality"]["metrics"][key]["message"]
+    assert before == [hashlib.sha256(path.read_bytes()).hexdigest() for path in records]
