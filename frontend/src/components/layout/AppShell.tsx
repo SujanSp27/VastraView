@@ -147,7 +147,7 @@ export default function AppShell() {
           id="main-content"
           ref={main}
           tabIndex={-1}
-          className={`page ${isAuth ? "page-auth" : ""}`}
+          className={`page ${isAuth ? "page-auth" : ""} ${location.pathname === "/" ? "page-home" : ""}`}
         >
           <Outlet />
         </main>
