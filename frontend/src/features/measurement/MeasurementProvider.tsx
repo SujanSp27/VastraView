@@ -6,6 +6,7 @@ import {
   type ReactNode,
 } from "react";
 import type { Extraction, Measurements, Metric } from "../../types/studio";
+import { useAuth } from "../auth/AuthProvider";
 
 const SESSION_KEY = "formfit:measurement_session";
 
@@ -20,6 +21,8 @@ function loadSession() {
 }
 
 type State = {
+  gender: "male" | "female" | null;
+  setGender: (value: "male" | "female" | null) => void;
   file: File | undefined;
   setFile: (file: File | undefined) => void;
   height: number;
@@ -40,7 +43,11 @@ type State = {
 const Context = createContext<State | null>(null);
 
 export function MeasurementProvider({ children }: { children: ReactNode }) {
+  const auth = useAuth();
   const initial = loadSession();
+  const [gender, rawSetGender] = useState<"male" | "female" | null>(
+    initial?.gender ?? auth.user?.gender ?? null,
+  );
   const [file, rawSetFile] = useState<File>();
   const [height, setHeight] = useState<number>(initial?.height ?? 172);
   const [extraction, rawSetExtraction] = useState<Extraction | undefined>(
@@ -59,11 +66,18 @@ export function MeasurementProvider({ children }: { children: ReactNode }) {
   const [saved, setSaved] = useState<boolean>(initial?.saved ?? false);
 
   useEffect(() => {
-    if (measurements || extraction) {
+    if (auth.user?.gender && !gender) {
+      rawSetGender(auth.user.gender);
+    }
+  }, [auth.user?.gender]);
+
+  useEffect(() => {
+    if (measurements || extraction || gender) {
       try {
         sessionStorage.setItem(
           SESSION_KEY,
           JSON.stringify({
+            gender,
             height,
             extraction,
             measurements,
@@ -78,6 +92,7 @@ export function MeasurementProvider({ children }: { children: ReactNode }) {
       }
     }
   }, [
+    gender,
     height,
     extraction,
     measurements,
@@ -86,6 +101,16 @@ export function MeasurementProvider({ children }: { children: ReactNode }) {
     reviewedMetrics,
     saved,
   ]);
+
+  const setGender = (value: "male" | "female" | null) => {
+    rawSetGender(value);
+    if (measurements || extraction) {
+      setExtraction(undefined);
+      setMeasurements(undefined);
+      setEdited(false);
+      setSaved(false);
+    }
+  };
 
   const setExtraction = (value: Extraction | undefined) => {
     rawSetExtraction(value);
@@ -149,6 +174,8 @@ export function MeasurementProvider({ children }: { children: ReactNode }) {
   return (
     <Context.Provider
       value={{
+        gender,
+        setGender,
         file,
         setFile,
         height,

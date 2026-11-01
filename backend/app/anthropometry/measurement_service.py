@@ -50,8 +50,14 @@ KEY_LANDMARKS = {
     27: "left ankle", 28: "right ankle", 29: "left heel", 30: "right heel",
 }
 KAPPA = {"chest": 2.45, "waist": 2.30, "hip": 2.40, "thigh": 2.50}
+KAPPA_MALE = {"chest": 2.40, "waist": 2.30, "hip": 2.35, "thigh": 2.50}
+KAPPA_FEMALE = {"chest": 2.50, "waist": 2.30, "hip": 2.45, "thigh": 2.50}
 THIGH_FRACTION = 0.40  # Hip joints sit above the crotch; 25% often spans both legs.
 CHEST_FRACTIONS = (0.25, 0.30, 0.35, 0.40, 0.45)
+CHEST_FRACTIONS_MALE = (0.25, 0.28, 0.32, 0.36, 0.40)
+CHEST_FRACTIONS_FEMALE = (0.30, 0.33, 0.36, 0.40, 0.44)
+WAIST_FRACTIONS_MALE = (0.50, 0.54, 0.58, 0.62)
+WAIST_FRACTIONS_FEMALE = (0.46, 0.49, 0.52, 0.56)
 WAIST_FRACTIONS = (0.50, 0.48, 0.52)  # Local band only; do not substitute hips for waist.
 
 
@@ -168,7 +174,7 @@ def connected_hand_near_section(observation, points, valid, segment):
     return False
 
 
-def torso_sections(observation: PoseObservation, points: np.ndarray, region_labels=None):
+def torso_sections(observation: PoseObservation, points: np.ndarray, region_labels=None, gender: str | None = None):
     """Use observed central spans only; never cut an arm off at an invented body edge."""
     shoulder, hip = points[[11, 12]].mean(0), points[[23, 24]].mean(0)
     axis = (hip - shoulder) / np.linalg.norm(hip - shoulder)
@@ -177,8 +183,16 @@ def torso_sections(observation: PoseObservation, points: np.ndarray, region_labe
     valid = usable_landmarks(observation)
     arms_known = bool(valid[[11, 12, 13, 14, 15, 16]].all())
     widths, fractions, quality, sections = {}, {}, {}, []
-    waist_candidates = WAIST_FRACTIONS if region_labels is None else (.50, .48, .52, .56, .60, .64, .68, .72)
-    for name, candidates in (("chest", CHEST_FRACTIONS), ("waist", waist_candidates)):
+    if gender == "male":
+        chest_candidates = CHEST_FRACTIONS_MALE
+        waist_candidates = WAIST_FRACTIONS_MALE if region_labels is None else (.48, .52, .56, .60, .64, .68)
+    elif gender == "female":
+        chest_candidates = CHEST_FRACTIONS_FEMALE
+        waist_candidates = WAIST_FRACTIONS_FEMALE if region_labels is None else (.44, .48, .50, .54, .58, .62, .66)
+    else:
+        chest_candidates = CHEST_FRACTIONS
+        waist_candidates = WAIST_FRACTIONS if region_labels is None else (.50, .48, .52, .56, .60, .64, .68, .72)
+    for name, candidates in (("chest", chest_candidates), ("waist", waist_candidates)):
         samples, usable = [], []
         for fraction in candidates:
             center = shoulder * (1 - fraction) + hip * fraction
@@ -235,7 +249,7 @@ def torso_sections(observation: PoseObservation, points: np.ndarray, region_labe
     return widths, fractions, quality, sections
 
 
-def thigh_sections(observation, points, scale):
+def thigh_sections(observation, points, scale, gender: str | None = None):
     valid = usable_landmarks(observation)
     widths, sections, sides = [], [], []
     for side, (hip, knee, other_hip, other_knee) in enumerate(((23, 25, 24, 26), (24, 26, 23, 25))):
@@ -291,13 +305,15 @@ def thigh_sections(observation, points, scale):
         info.update(status="review_required", reason=reason, requires_manual_review=True,
                     message="Only one thigh outline is visible. This single-side estimate needs a tape measurement before sizing.")
     diagnostic("thigh_sections", sides=sides, measured_sides=len(widths))
-    return (float(np.mean(widths) * scale * KAPPA["thigh"]) if widths else None), info, sections
+    kappa_thigh = (KAPPA_FEMALE if gender == "female" else KAPPA_MALE if gender == "male" else KAPPA)["thigh"]
+    return (float(np.mean(widths) * scale * kappa_thigh) if widths else None), info, sections
 
 
-def estimate(observation: PoseObservation, height_cm: float, *, region_labels=None) -> tuple[dict, list]:
+def estimate(observation: PoseObservation, height_cm: float, *, region_labels=None, gender: str | None = None) -> tuple[dict, list]:
     if not math.isfinite(height_cm) or not 80 <= height_cm <= 250:
         raise PipelineError("invalid_height", "Self-reported height must be between 80 and 250 cm.")
     p = validate_pose(observation)
+    kappa = KAPPA_FEMALE if gender == "female" else KAPPA_MALE if gender == "male" else KAPPA
     valid = usable_landmarks(observation)
     scale, head_y, ankle_y, head_indices, feet = calibrate(observation, p, height_cm)
     height_px = ankle_y - head_y
@@ -322,13 +338,13 @@ def estimate(observation: PoseObservation, height_cm: float, *, region_labels=No
     torso_ok = shoulder_ok and hips_ok and head_y < p[[11, 12], 1].mean() < p[[23, 24], 1].mean() < ankle_y
     fractions = {"chest": None, "waist": None}
     if torso_ok:
-        widths, fractions, torso_quality, torso_lines = torso_sections(observation, p, region_labels)
+        widths, fractions, torso_quality, torso_lines = torso_sections(observation, p, region_labels, gender=gender)
         sections.extend(torso_lines)
         for name in ("chest", "waist"):
             key = name + "_circumference"
             metric_quality[key] = {**quality(observation, [11, 12, 23, 24], "silhouette_projection_multiplier"), **torso_quality[key]}
             if widths[name] is not None:
-                values[key] = widths[name] * scale * KAPPA[name]
+                values[key] = widths[name] * scale * kappa[name]
     else:
         for name in ("chest", "waist"):
             metric_quality[name + "_circumference"] = quality(observation, [11, 12, 23, 24],
@@ -344,7 +360,7 @@ def estimate(observation: PoseObservation, height_cm: float, *, region_labels=No
                 candidates = []
                 # Search visible outer hip levels near/below the joint level;
                 # joints locate the region but never supply its circumference.
-                for fraction in (0., .04, .08, .12, .16, .20):
+                for fraction in ((0., .04, .08, .12, .16, .20, .24) if gender == "female" else (0., .04, .08, .12, .16) if gender == "male" else (0., .04, .08, .12, .16, .20)):
                     anchor = center + span * fraction
                     try:
                         width, line = band_width(observation.mask, anchor, np.array([1., 0.]), axis)
@@ -364,12 +380,13 @@ def estimate(observation: PoseObservation, height_cm: float, *, region_labels=No
                     or not (valid[[11, 12, 13, 14, 15, 16]].all()
                             or uncertain_arm_is_separate(observation, p, center, valid))):
                 raise PipelineError("hip_outline_unavailable", "Arms obscure the hip outline.")
-            values["hip_circumference"] = hip_width * scale * KAPPA["hip"]
+            values["hip_circumference"] = hip_width * scale * kappa["hip"]
             info = quality(observation, [23, 24], "hip_silhouette_projection_multiplier")
             if region_labels is not None:
                 info.update(boundary_evidence=hip_edge, sample_fraction=hip_fraction)
             left, right = (float(np.linalg.norm(end - center)) for end in segment)
-            if hip_width > 2.5 * np.linalg.norm(p[23] - p[24]) or abs(left - right) / hip_width > .35:
+            max_hip_mult = 2.8 if gender == "female" else 2.4 if gender == "male" else 2.5
+            if hip_width > max_hip_mult * np.linalg.norm(p[23] - p[24]) or abs(left - right) / hip_width > .35:
                 info.update(status="review_required", reason="wide_clothing_outline", requires_manual_review=True,
                             message="The hip outline is wide or asymmetric relative to the visible joints. Clothing or body shape may explain it; confirm with a tape measure.")
             metric_quality["hip_circumference"] = info
@@ -377,7 +394,7 @@ def estimate(observation: PoseObservation, height_cm: float, *, region_labels=No
             diagnostic("hip_section", width_pixels=hip_width, left_pixels=left, right_pixels=right, decision=info["status"])
         except PipelineError as exc:
             diagnostic("hip_section", decision="unavailable", reason=exc.code)
-    thigh_value, thigh_info, thigh_lines = thigh_sections(observation, p, scale)
+    thigh_value, thigh_info, thigh_lines = thigh_sections(observation, p, scale, gender=gender)
     values["thigh_circumference"] = thigh_value
     metric_quality["thigh_circumference"] = thigh_info
     sections.extend(thigh_lines)
@@ -431,7 +448,8 @@ def estimate(observation: PoseObservation, height_cm: float, *, region_labels=No
                      "head_reference": "minimum y of visible MediaPipe face landmarks 0-10",
                      "head_landmark_indices": head_indices, "foot_evidence": feet,
                      "image_size": list(observation.image.shape[1::-1]),
-                     "projection_multipliers": KAPPA,
+                     "gender": gender,
+                     "projection_multipliers": kappa,
                      "chest_torso_fraction": fractions["chest"], "waist_torso_fraction": fractions["waist"],
                      "thigh_leg_fraction": THIGH_FRACTION,
                      "inseam_reference": "mean Euclidean distance from hip midpoint to ankles 27/28"},
@@ -457,10 +475,10 @@ class MeasurementService:
         self.output_root = output_root
         self.semantic_parser = semantic_parser
 
-    def extract(self, data: bytes, height_cm: float) -> ExtractionResponse:
+    def extract(self, data: bytes, height_cm: float, gender: str | None = None) -> ExtractionResponse:
         started = perf_counter()
         try:
-            response = self._extract(data, height_cm)
+            response = self._extract(data, height_cm, gender=gender)
         except PipelineError as exc:
             diagnostic("measurement_failed", code=exc.code, duration_seconds=round(perf_counter() - started, 3))
             raise
@@ -468,12 +486,12 @@ class MeasurementService:
                    duration_seconds=round(perf_counter() - started, 3))
         return response
 
-    def _extract(self, data: bytes, height_cm: float) -> ExtractionResponse:
+    def _extract(self, data: bytes, height_cm: float, gender: str | None = None) -> ExtractionResponse:
         image = decode_person(data)
         observation = self.detector.detect(image)
         if observation.image.shape != image.shape:
             raise PipelineError("invalid_pose_frame", "The pose and photo use different image dimensions. Retry extraction.")
-        result, sections = estimate(observation, height_cm)
+        result, sections = estimate(observation, height_cm, gender=gender)
         refined_masks = {}
         if observation.probabilities is not None:
             # Bounded retries, including small images and hip/thigh-only failures.
@@ -490,7 +508,7 @@ class MeasurementService:
                     if mode == "image_guided":
                         options["reconsider_foreground"] = True
                     mask = guard_refined_mask(observation, refine_mask(image, observation.probabilities, **options))
-                    next_result, next_sections = estimate(replace(observation, mask=mask), height_cm)
+                    next_result, next_sections = estimate(replace(observation, mask=mask), height_cm, gender=gender)
                     result, sections, recovered = merge_recovered(result, sections, next_result, next_sections, mode)
                     attempt["recovered"] = recovered
                     if recovered:
@@ -512,7 +530,7 @@ class MeasurementService:
             try:
                 parsed = self.semantic_parser.predict(image)
                 mask = region_mask(observation, parsed.labels)
-                candidate, candidate_lines = estimate(replace(observation, mask=mask), height_cm, region_labels=parsed.labels)
+                candidate, candidate_lines = estimate(replace(observation, mask=mask), height_cm, region_labels=parsed.labels, gender=gender)
                 # Do not let the measurement-only region mask alter any limb metric.
                 for key in candidate["measurements"]:
                     if key not in TARGETS:
@@ -554,15 +572,24 @@ class MeasurementService:
         for name, segment in sections:
             draw.line([tuple(end) for end in segment], fill="#00b0ff", width=3)
             draw.text(tuple(segment[0]), name, fill="#005085")
+        prov = {"model": "MediaPipe Pose Landmarker Full", "landmarks": 33,
+                "model_sha256": self.detector.model_sha256, "device": "cpu",
+                "local_gpu_used": False, "input_sha256": hashlib.sha256(data).hexdigest(),
+                "method": "landmark-silhouette-projection-v6",
+                "segmentation": "MediaPipe probabilities with CPU GrabCut and optional CPU semantic-region edge validation"}
+        if gender:
+            prov["model_type"] = gender
         response = ExtractionResponse(
+            gender=gender,
             **result, measurement_id=filename, annotated_image_url=f"/static/annotated/{filename}.png",
             landmarks_normalized=observation.landmarks.tolist(),
             landmark_presence=observation.presence.tolist() if observation.presence is not None else None,
-            provenance={"model": "MediaPipe Pose Landmarker Full", "landmarks": 33,
-                        "model_sha256": self.detector.model_sha256, "device": "cpu",
-                        "local_gpu_used": False, "input_sha256": hashlib.sha256(data).hexdigest(),
-                        "method": "landmark-silhouette-projection-v6",
-                        "segmentation": "MediaPipe probabilities with CPU GrabCut and optional CPU semantic-region edge validation"},
+            provenance=prov,
+
+
+
+
+
         )
         # Validate all geometry before creating successful artifacts.
         PhotoMeasurements.model_validate(result["measurements"])

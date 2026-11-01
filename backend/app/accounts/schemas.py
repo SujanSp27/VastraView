@@ -47,6 +47,7 @@ class ProfileUpdate(StrictSchema):
     name: str = Field(min_length=2, max_length=80)
     height_cm: float | None = Field(default=None, ge=80, le=250)
     measurement_unit: Literal["cm", "in"] = "cm"
+    gender: Literal["male", "female"] | None = None
 
 
 class SaveScan(StrictSchema):
@@ -55,3 +56,4 @@ class SaveScan(StrictSchema):
     measurements: Measurements
     source: Literal["photo-estimate", "manually-corrected", "manual"]
     thumbnail_base64: str | None = Field(default=None, max_length=500_000)
+    gender: Literal["male", "female"] | None = None

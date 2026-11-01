@@ -73,6 +73,7 @@ def public_user(user):
         "created_at": user["created_at"],
         "email_verified": user.get("email_verified", False),
         "measurement_unit": user.get("measurement_unit", "cm"),
+        "gender": user.get("gender"),
     }
 
 
@@ -384,6 +385,8 @@ def save_scan(data: SaveScan, user=Depends(current_user), db=Depends(account_db)
         "consent_method": "explicit-save-action",
         "thumbnail": thumbnail,
     }
+    if data.gender and not user.get("gender"):
+        db.users.update_one({"_id": user["_id"]}, {"$set": {"gender": data.gender}})
     db.saved_scans.insert_one(row)
     return scan_public(row)
 

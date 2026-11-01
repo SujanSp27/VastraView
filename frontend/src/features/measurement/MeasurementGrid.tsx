@@ -22,11 +22,13 @@ export default function MeasurementGrid({
   onChange,
   quality,
   manualMetrics = [],
+  gender,
 }: {
   values?: Measurements;
   onChange: (values: Measurements, changed: Metric) => void;
   quality?: Extraction["quality"];
   manualMetrics?: Metric[];
+  gender?: "male" | "female" | null;
 }) {
   const { user } = useAuth();
   const [unit, setUnit] = useState<"cm" | "in">(user?.measurement_unit ?? "cm");
@@ -34,6 +36,11 @@ export default function MeasurementGrid({
   const [edit, setEdit] = useState<Metric | null>(null);
   const [draft, setDraft] = useState("");
   const [error, setError] = useState("");
+  const labels: Record<Metric, string> = {
+    ...metricLabels,
+    chest_circumference:
+      gender === "female" ? "Bust circumference" : "Chest circumference",
+  };
   return (
     <>
       <label className="field measurement-unit">
@@ -58,7 +65,7 @@ export default function MeasurementGrid({
                 <button
                   type="button"
                   className="text-button"
-                  aria-label={`Edit ${metricLabels[key]}`}
+                  aria-label={`Edit ${labels[key]}`}
                   onClick={() => {
                     setEdit(key);
                     setDraft(
@@ -71,7 +78,7 @@ export default function MeasurementGrid({
                 </button>
               )}
             </div>
-            <span className="metric-name">{metricLabels[key]}</span>
+            <span className="metric-name">{labels[key]}</span>
             {edit === key && values ? (
               <form
                 onSubmit={(e) => {
@@ -102,7 +109,7 @@ export default function MeasurementGrid({
                     autoFocus
                     type="number"
                     step=".1"
-                    aria-label={`${metricLabels[key]} in ${unit === "cm" ? "centimeters" : "inches"}`}
+                    aria-label={`${labels[key]} in ${unit === "cm" ? "centimeters" : "inches"}`}
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
                   />
@@ -146,7 +153,7 @@ export default function MeasurementGrid({
             {values && (
               <small
                 className="metric-caption"
-                aria-label={`${metricLabels[key]} measurement status`}
+                aria-label={`${labels[key]} measurement status`}
               >
                 {manualMetrics.includes(key)
                   ? "Manual entry"

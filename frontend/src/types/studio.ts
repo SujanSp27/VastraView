@@ -16,6 +16,7 @@ export type User = {
   created_at: string;
   email_verified?: boolean;
   measurement_unit?: "cm" | "in";
+  gender?: "male" | "female" | null;
 };
 export type Session = { access_token: string; expires_in: number; user: User };
 export type Extraction = {
@@ -25,6 +26,7 @@ export type Extraction = {
   annotated_image_url: string;
   landmarks_normalized: number[][];
   landmark_presence?: number[] | null;
+  gender?: "male" | "female" | null;
   warnings: string[];
   quality: {
     estimates_only: boolean;
@@ -114,6 +116,7 @@ export type SavedScan = {
   source: string;
   created_at: string;
   thumbnail_url: string | null;
+  gender?: "male" | "female" | null;
 };
 export type SavedSize = {
   id: string;

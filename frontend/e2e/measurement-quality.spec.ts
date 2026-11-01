@@ -1,10 +1,16 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { existsSync, mkdirSync } from "node:fs";
 
 test.use({ actionTimeout: 15000 });
 const evidence = "../experiments/torso-validation";
 mkdirSync(evidence, { recursive: true });
+
+async function pickSampleModel(page: Page, modelName = "Male Model") {
+  await page.getByRole("button", { name: "Try a sample", exact: true }).click();
+  const modal = page.getByRole("dialog", { name: /Choose a sample model/i });
+  await modal.getByRole("button", { name: `Select ${modelName}` }).click();
+}
 
 test("real arm-down photo recovers torso and hip estimates with a visible review gate", async ({
   page,
@@ -18,6 +24,7 @@ test("real arm-down photo recovers torso and hip estimates with a visible review
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/measure");
+  await page.getByRole("button", { name: "Male", exact: true }).click();
   await page.locator('input[type="file"]').setInputFiles(source);
   await page.getByLabel("Height in centimeters").fill("172");
   const response = page.waitForResponse(
@@ -76,7 +83,7 @@ test("retry keeps photo and height, then actual CPU extraction feeds owner-scope
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/measure");
-  await page.getByRole("button", { name: "Try a sample", exact: true }).click();
+  await pickSampleModel(page);
   await page.getByLabel("Height in centimeters").fill("180");
   const photo = page.getByRole("img", {
     name: "Your uploaded full-body photo",
@@ -205,7 +212,7 @@ test("partial scan keeps skeleton, exposes uncertainty and requires each flagged
     });
   });
   await page.goto("/measure");
-  await page.getByRole("button", { name: "Try a sample", exact: true }).click();
+  await pickSampleModel(page);
   await page
     .getByRole("button", { name: "Extract measurements", exact: true })
     .click();
@@ -258,7 +265,7 @@ test("failed re-extraction clears stale measurements while retaining the selecte
   page,
 }) => {
   await page.goto("/measure");
-  await page.getByRole("button", { name: "Try a sample", exact: true }).click();
+  await pickSampleModel(page);
   const response = page.waitForResponse((r) =>
     r.url().endsWith("/measurements/extract"),
   );
@@ -346,7 +353,7 @@ test("unavailable thigh stays explicit through inches and manual correction", as
     route.fulfill({ json: scan }),
   );
   await page.goto("/measure");
-  await page.getByRole("button", { name: "Try a sample", exact: true }).click();
+  await pickSampleModel(page);
   await page
     .getByRole("button", { name: "Extract measurements", exact: true })
     .click();
@@ -434,7 +441,7 @@ test("recovered numeric estimate directly enables Save and Find My Size while al
     }),
   );
   await page.goto("/measure");
-  await page.getByRole("button", { name: "Try a sample", exact: true }).click();
+  await pickSampleModel(page);
   await page
     .getByRole("button", { name: "Extract measurements", exact: true })
     .click();
@@ -554,7 +561,7 @@ test("extracted estimates directly enable Find My Size without confirmation and 
   );
 
   await page.goto("/measure");
-  await page.getByRole("button", { name: "Try a sample", exact: true }).click();
+  await pickSampleModel(page);
   await page
     .getByRole("button", { name: "Extract measurements", exact: true })
     .click();
@@ -590,4 +597,142 @@ test("extracted estimates directly enable Find My Size without confirmation and 
   await findSizeLink.click();
   await expect(page).toHaveURL(/\/sizing$/);
   await expect(page.getByText("Your next size")).toBeVisible();
+});
+
+test("try a sample modal provides male and female selection with direct photo upload fallback", async ({
+  page,
+}) => {
+  await page.goto("/measure");
+
+  // Verify permanent model selection cards are NOT displayed
+  await expect(page.locator(".model-selector-section")).toHaveCount(0);
+  await expect(page.getByRole("radio", { name: "Select Male Model" })).toHaveCount(0);
+  await expect(page.getByRole("radio", { name: "Select Female Model" })).toHaveCount(0);
+
+  // Extract button is disabled initially because no photo is loaded
+  const extractBtn = page.getByRole("button", {
+    name: "Extract measurements",
+    exact: true,
+  });
+  await expect(extractBtn).toBeDisabled();
+
+  // Click "Try a sample" to open the sample modal
+  const trySampleBtn = page.getByRole("button", {
+    name: "Try a sample",
+    exact: true,
+  });
+  await trySampleBtn.click();
+
+  const modal = page.getByRole("dialog", { name: /Choose a sample model/i });
+  await expect(modal).toBeVisible();
+  await expect(
+    modal.getByRole("heading", { name: /Choose a sample model/i }),
+  ).toBeVisible();
+
+  // Both Male and Female models are displayed inside the modal
+  const maleOption = modal.getByRole("button", { name: "Select Male Model" });
+  const femaleOption = modal.getByRole("button", { name: "Select Female Model" });
+  await expect(maleOption).toBeVisible();
+  await expect(femaleOption).toBeVisible();
+
+  // Select Female Model
+  const femaleSampleRequest = page.waitForResponse((r) =>
+    r.url().includes("/samples/person-female"),
+  );
+  await femaleOption.click();
+  const femaleSampleResp = await femaleSampleRequest;
+  expect(femaleSampleResp.status()).toBe(200);
+
+  // Modal closes automatically
+  await expect(modal).not.toBeVisible();
+
+  // Female height defaults to 168 cm
+  await expect(page.getByLabel("Height in centimeters")).toHaveValue("168");
+  // Extract button is enabled
+  await expect(extractBtn).toBeEnabled();
+
+  // Route extraction to return mock female scan
+  let extractedGender: string | null = null;
+  await page.route("**/api/v1/measurements/extract", async (route) => {
+    const postData = route.request().postData() || "";
+    const match = postData.match(/name="gender"[^\r\n]*[\r\n]+([a-z]+)/i);
+    if (match) {
+      extractedGender = match[1];
+    }
+
+    return route.fulfill({
+      json: {
+        measurement_id: "pose_fem_" + "e".repeat(24),
+        scale_factor: 0.2,
+        gender: "female",
+        measurements: {
+          shoulder_width: 37,
+          chest_circumference: 88,
+          waist_circumference: 68,
+          hip_circumference: 94,
+          thigh_circumference: 50,
+          inseam_length: 78,
+        },
+        landmarks_normalized: Array.from({ length: 33 }, () => [
+          0.5, 0.5, 0, 0.99,
+        ]),
+        annotated_image_url: "/unused-test-annotation.png",
+        geometry: {
+          image_size: [600, 1000],
+          height_cm: 168,
+          gender: "female",
+          chest_torso_fraction: 0.36,
+          waist_torso_fraction: 0.50,
+        },
+        warnings: [],
+        quality: {
+          estimates_only: true,
+          minimum_key_landmark_visibility: 0.99,
+          status: "estimated",
+          requires_manual_review: [],
+        },
+        provenance: {
+          model: "MediaPipe Pose Landmarker Full",
+          model_type: "female",
+        },
+      },
+    });
+  });
+
+  await extractBtn.click();
+
+  // Verified: Backend received female gender
+  expect(extractedGender).toBe("female");
+
+  // M2 is labeled "Bust circumference" for female model
+  const bustCard = page
+    .locator(".metric-card")
+    .filter({ hasText: "Bust circumference" });
+  await expect(bustCard).toBeVisible();
+  await expect(bustCard.locator(".metric-value")).toContainText("88.0");
+
+  // Open "Try a sample" again and switch to Male Model
+  await trySampleBtn.click();
+  await expect(modal).toBeVisible();
+
+  const maleSampleRequest = page.waitForResponse((r) =>
+    r.url().includes("/samples/person-male"),
+  );
+  await modal.getByRole("button", { name: "Select Male Model" }).click();
+  const maleSampleResp = await maleSampleRequest;
+  expect(maleSampleResp.status()).toBe(200);
+
+  // Modal closes automatically and sets height to 180 cm
+  await expect(modal).not.toBeVisible();
+  await expect(page.getByLabel("Height in centimeters")).toHaveValue("180");
+
+  // M2 re-labels to Chest circumference
+  const chestCard = page
+    .locator(".metric-card")
+    .filter({ hasText: "Chest circumference" });
+  await expect(chestCard).toBeVisible();
+
+  // Re-extracting with Male sends male gender
+  await extractBtn.click();
+  expect(extractedGender).toBe("male");
 });

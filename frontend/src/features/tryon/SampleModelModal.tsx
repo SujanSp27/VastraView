@@ -36,6 +36,8 @@ interface SampleModelModalProps {
   onSelectModel: (model: SampleModel) => void;
   currentFilename?: string;
   loading?: boolean;
+  title?: string;
+  subtitle?: string;
 }
 
 export default function SampleModelModal({
@@ -44,14 +46,16 @@ export default function SampleModelModal({
   onSelectModel,
   currentFilename,
   loading = false,
+  title = "Choose a sample model",
+  subtitle = "Select a professional studio model to preview and test instantly.",
 }: SampleModelModalProps) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   return (
-    <Modal wide open={open} onClose={onClose} title="Choose a Sample Model">
+    <Modal wide open={open} onClose={onClose} title={title}>
       <div style={{ padding: "4px 0 16px 0" }}>
         <p style={{ margin: "0 0 20px 0", color: "#64748b", fontSize: "14px" }}>
-          Select a professional studio model to preview and test virtual try-ons instantly.
+          {subtitle}
         </p>
 
         <div
@@ -200,13 +204,8 @@ export default function SampleModelModal({
                     </p>
                   </div>
 
-                  <button
-                    type="button"
-                    disabled={loading}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (!loading) onSelectModel(model);
-                    }}
+                  <span
+                    aria-hidden="true"
                     style={{
                       marginTop: "10px",
                       padding: "8px 16px",
@@ -218,7 +217,6 @@ export default function SampleModelModal({
                       justifyContent: "center",
                       gap: "6px",
                       border: "none",
-                      cursor: loading ? "wait" : "pointer",
                       background: isSelected ? "#1e3a2b" : isHovered ? "#284e3a" : "#f1f5f9",
                       color: isSelected || isHovered ? "#ffffff" : "#1e293b",
                       transition: "all 0.2s ease",
@@ -233,7 +231,7 @@ export default function SampleModelModal({
                         <Sparkles size={14} /> Select {model.label}
                       </>
                     )}
-                  </button>
+                  </span>
                 </div>
               </div>
             );
@@ -254,7 +252,7 @@ export default function SampleModelModal({
             onClick={onClose}
             disabled={loading}
           >
-            Cancel
+            Close
           </button>
         </div>
       </div>

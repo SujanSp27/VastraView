@@ -69,6 +69,7 @@ class ExtractionResponse(StrictSchema):
     warnings: list[str]
     landmarks_normalized: list[list[float]] = Field(default_factory=list)
     landmark_presence: list[float] | None = None
+    gender: Literal["male", "female"] | None = None
 
 
 class StoredMeasurement(ExtractionResponse):

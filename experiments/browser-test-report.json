@@ -123,12 +123,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 18899,
+                  "duration": 16183,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T07:04:52.314Z",
+                  "startTime": "2026-11-01T09:34:34.537Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -138,7 +138,7 @@
           ],
           "id": "979d83d7751e37979a71-cf52ffb6109f9cc3c88e",
           "file": "measurement-quality.spec.ts",
-          "line": 9,
+          "line": 15,
           "column": 1
         },
         {
@@ -157,12 +157,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4733,
+                  "duration": 4279,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T07:05:11.464Z",
+                  "startTime": "2026-11-01T09:34:50.968Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -172,7 +172,7 @@
           ],
           "id": "979d83d7751e37979a71-82a68935f3db33cb3f45",
           "file": "measurement-quality.spec.ts",
-          "line": 73,
+          "line": 80,
           "column": 1
         },
         {
@@ -191,12 +191,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3258,
+                  "duration": 3919,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T07:05:16.227Z",
+                  "startTime": "2026-11-01T09:34:55.266Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -206,7 +206,7 @@
           ],
           "id": "979d83d7751e37979a71-fcf8122ade383dcd46aa",
           "file": "measurement-quality.spec.ts",
-          "line": 152,
+          "line": 159,
           "column": 1
         },
         {
@@ -225,12 +225,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3334,
+                  "duration": 3654,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T07:05:19.502Z",
+                  "startTime": "2026-11-01T09:34:59.202Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -240,7 +240,7 @@
           ],
           "id": "979d83d7751e37979a71-ef7775d4e835ecc76189",
           "file": "measurement-quality.spec.ts",
-          "line": 257,
+          "line": 264,
           "column": 1
         },
         {
@@ -259,12 +259,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1507,
+                  "duration": 2021,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T07:05:22.851Z",
+                  "startTime": "2026-11-01T09:35:02.873Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -274,7 +274,7 @@
           ],
           "id": "979d83d7751e37979a71-faeb0a0f1b04bf2c431b",
           "file": "measurement-quality.spec.ts",
-          "line": 308,
+          "line": 315,
           "column": 1
         },
         {
@@ -293,12 +293,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2153,
+                  "duration": 1917,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T07:05:24.372Z",
+                  "startTime": "2026-11-01T09:35:04.911Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -308,7 +308,7 @@
           ],
           "id": "979d83d7751e37979a71-92a5ecc89fe6007a3dd8",
           "file": "measurement-quality.spec.ts",
-          "line": 392,
+          "line": 399,
           "column": 1
         },
         {
@@ -327,12 +327,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2532,
+                  "duration": 2592,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T07:05:26.541Z",
+                  "startTime": "2026-11-01T09:35:06.852Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -342,7 +342,41 @@
           ],
           "id": "979d83d7751e37979a71-882ede3d04ffcf0468b7",
           "file": "measurement-quality.spec.ts",
-          "line": 479,
+          "line": 486,
+          "column": 1
+        },
+        {
+          "title": "try a sample modal provides male and female selection with direct photo upload fallback",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2468,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-01T09:35:09.464Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "979d83d7751e37979a71-e36842ae7af1cf4e1ee1",
+          "file": "measurement-quality.spec.ts",
+          "line": 602,
           "column": 1
         }
       ]
@@ -350,9 +384,9 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-11-01T07:04:51.157Z",
-    "duration": 39210.312,
-    "expected": 7,
+    "startTime": "2026-11-01T09:34:33.341Z",
+    "duration": 39952.425,
+    "expected": 8,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0

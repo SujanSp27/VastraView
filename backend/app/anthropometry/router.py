@@ -60,7 +60,8 @@ def chart_admin(x_admin_token: str = Header(default="")):
 
 
 def extract_and_save(image: UploadFile, height_cm: float, repo: MeasurementRepository,
-                     service: MeasurementService, owner: str | None = None) -> ExtractionResponse:
+                     service: MeasurementService, owner: str | None = None,
+                     gender: str | None = None) -> ExtractionResponse:
     if not measurement_capacity.acquire(blocking=False):
         raise PipelineError("measurement_busy", "Another measurement is running; retry shortly.", 429)
     try:
@@ -68,7 +69,7 @@ def extract_and_save(image: UploadFile, height_cm: float, repo: MeasurementRepos
         data = image.file.read(limit + 1)
         if len(data) > limit:
             raise PipelineError("upload_too_large", f"Image must be below {settings.max_upload_mb} MB.", 413)
-        response = service.extract(data, height_cm)
+        response = service.extract(data, height_cm, gender=gender)
         measurement_id = Path(response.annotated_image_url).stem
         response.measurement_id = measurement_id
         try:
@@ -90,18 +91,20 @@ def extract_measurements(
     request: Request,
     image: UploadFile = File(),
     height_cm: float = Form(ge=80, le=250, allow_inf_nan=False),
+    gender: str | None = Form(default=None),
     repo: MeasurementRepository = Depends(get_repository),
     service: MeasurementService = Depends(get_measurement_service),
     owner: str = Depends(principal),
 ):
     throttle(repo.db, request, "measurement-extraction", owner, maximum=12)
-    return extract_and_save(image, height_cm, repo, service, owner)
+    return extract_and_save(image, height_cm, repo, service, owner, gender=gender)
 
 
 @router.post("/measurements/extract-and-recommend", response_model=ExtractAndRecommendResponse)
 def extract_and_recommend(
     request: Request,
     image: UploadFile = File(), height_cm: float = Form(ge=80, le=250, allow_inf_nan=False),
+    gender: str | None = Form(default=None),
     brand_id: Identifier = Form(), apparel_id: Identifier = Form(),
     chart_version: int | None = Form(default=None, ge=1),
     repo: MeasurementRepository = Depends(get_repository),
@@ -112,7 +115,7 @@ def extract_and_recommend(
     chart = repo.get_chart(brand_id, apparel_id, chart_version)
     if chart.measurement_basis != "body":
         raise PipelineError("chart_basis_unsupported", "A body-size chart is required; garment dimensions cannot score body measurements.")
-    extraction = extract_and_save(image, height_cm, repo, service, owner)
+    extraction = extract_and_save(image, height_cm, repo, service, owner, gender=gender)
     try:
         values = reviewed_measurements(extraction, chart)
     except PipelineError as exc:

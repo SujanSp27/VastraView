@@ -5,6 +5,7 @@ import ImageUploader from "./ImageUploader";
 import LandmarkCanvas from "./LandmarkCanvas";
 import HeightInput from "./HeightInput";
 import MeasurementGrid, { validMeasurements } from "./MeasurementGrid";
+import SampleModelModal, { type SampleModel } from "../tryon/SampleModelModal";
 import WebcamCapture from "./WebcamCapture";
 import { useMeasurement } from "./MeasurementProvider";
 import { measurementService } from "../../services/measurementService";
@@ -26,6 +27,8 @@ export default function MeasurementWorkspace() {
   const [error, setError] = useState("");
   const [camera, setCamera] = useState(false);
   const [login, setLogin] = useState(false);
+  const [sampleModalOpen, setSampleModalOpen] = useState(false);
+  const [sampleLoading, setSampleLoading] = useState(false);
   const pending = useRef<AbortController | null>(null);
   const missingMetrics = (Object.keys(metricLabels) as Metric[]).filter(
     (key) => !state.measurements?.[key] || state.measurements[key] <= 0,
@@ -48,22 +51,32 @@ export default function MeasurementWorkspace() {
     if (auth.user?.height_cm && !state.measurements)
       state.setHeight(auth.user.height_cm);
   }, [auth.user?.id]);
-  async function sample() {
+  async function handleSelectSampleModel(model: SampleModel) {
+    setSampleLoading(true);
     setError("");
     try {
-      const r = await fetch("/api/samples/person");
+      const endpoint = model.previewUrl;
+      const filename = model.filename;
+      const mime = model.gender === "female" ? "image/png" : "image/jpeg";
+      const defaultH = model.gender === "female" ? 168 : 180;
+      const r = await fetch(endpoint);
       if (!r.ok)
         throw new Error(
           "The sample photo is unavailable. Upload your own photo.",
         );
+      state.setGender(model.gender);
       state.setFile(
-        new File([await r.blob()], "studio-person.jpg", { type: "image/jpeg" }),
+        new File([await r.blob()], filename, { type: mime }),
       );
+      if (!auth.user?.height_cm) state.setHeight(defaultH);
+      setSampleModalOpen(false);
       notify(
-        "Sample loaded. The default height is a test value; it is not measured ground truth.",
+        `${model.label} loaded (${defaultH} cm).`,
       );
     } catch (e) {
       setError((e as Error).message);
+    } finally {
+      setSampleLoading(false);
     }
   }
   async function extract() {
@@ -82,6 +95,7 @@ export default function MeasurementWorkspace() {
         state.file,
         state.height,
         controller.signal,
+        state.gender ?? undefined,
       );
       if (controller.signal.aborted) return;
       state.setExtraction(result);
@@ -120,6 +134,7 @@ export default function MeasurementWorkspace() {
             ? "manually-corrected"
             : "photo-estimate",
         state.file ? await thumbnail(state.file) : undefined,
+        state.gender,
       );
       state.setSaved(true);
       notify("Measurements saved to your private profile.");
@@ -229,8 +244,8 @@ export default function MeasurementWorkspace() {
                 <span>or</span>
                 <button
                   className="text-button"
-                  disabled={busy}
-                  onClick={() => void sample()}
+                  disabled={busy || sampleLoading}
+                  onClick={() => setSampleModalOpen(true)}
                 >
                   Try a sample
                 </button>
@@ -248,6 +263,37 @@ export default function MeasurementWorkspace() {
             }}
             disabled={busy}
           />
+          <fieldset className="height-field" disabled={busy}>
+            <legend className="visually-hidden">Body type</legend>
+            <div className="row-between">
+              <strong>Body type</strong>
+              <div
+                className="segmented compact"
+                role="group"
+                aria-label="Body type selection"
+              >
+                <button
+                  type="button"
+                  aria-pressed={state.gender === "male"}
+                  onClick={() =>
+                    state.setGender(state.gender === "male" ? null : "male")
+                  }
+                >
+                  Male
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={state.gender === "female"}
+                  onClick={() =>
+                    state.setGender(state.gender === "female" ? null : "female")
+                  }
+                >
+                  Female
+                </button>
+              </div>
+            </div>
+            <small>Optional anatomical proportion calibration.</small>
+          </fieldset>
           <div className="photo-checklist">
             <strong>A good photo makes a difference</strong>
             {[
@@ -302,6 +348,10 @@ export default function MeasurementWorkspace() {
         values={state.measurements}
         quality={state.extraction?.quality}
         manualMetrics={state.manualMetrics}
+        gender={
+          state.gender ??
+          (state.extraction?.gender as "male" | "female" | null | undefined)
+        }
         onChange={(values, key) => state.correctMeasurement(key, values[key])}
       />
       {state.extraction && (
@@ -370,6 +420,15 @@ export default function MeasurementWorkspace() {
         open={camera}
         onClose={() => setCamera(false)}
         onCapture={state.setFile}
+      />
+      <SampleModelModal
+        open={sampleModalOpen}
+        onClose={() => setSampleModalOpen(false)}
+        onSelectModel={(model) => void handleSelectSampleModel(model)}
+        currentFilename={state.file?.name}
+        loading={sampleLoading}
+        title="Choose a sample model"
+        subtitle="Select a studio model to test body measurements and sizing."
       />
       <AuthModal open={login} onClose={() => setLogin(false)} />
     </>
