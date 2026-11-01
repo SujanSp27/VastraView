@@ -32,10 +32,7 @@ type State = {
   setEdited: (value: boolean) => void;
   reviewedMetrics: Metric[];
   manualMetrics: Metric[];
-  confirmedMetrics: Metric[];
   correctMeasurement: (key: Metric, value: number) => void;
-  confirmMeasurement: (key: Metric) => void;
-  confirmAll: () => void;
   saved: boolean;
   setSaved: (value: boolean) => void;
 };
@@ -56,9 +53,6 @@ export function MeasurementProvider({ children }: { children: ReactNode }) {
   const [manualMetrics, setManualMetrics] = useState<Metric[]>(
     initial?.manualMetrics ?? [],
   );
-  const [confirmedMetrics, setConfirmedMetrics] = useState<Metric[]>(
-    initial?.confirmedMetrics ?? [],
-  );
   const [reviewedMetrics, setReviewedMetrics] = useState<Metric[]>(
     initial?.reviewedMetrics ?? [],
   );
@@ -75,7 +69,6 @@ export function MeasurementProvider({ children }: { children: ReactNode }) {
             measurements,
             edited,
             manualMetrics,
-            confirmedMetrics,
             reviewedMetrics,
             saved,
           }),
@@ -90,7 +83,6 @@ export function MeasurementProvider({ children }: { children: ReactNode }) {
     measurements,
     edited,
     manualMetrics,
-    confirmedMetrics,
     reviewedMetrics,
     saved,
   ]);
@@ -98,8 +90,13 @@ export function MeasurementProvider({ children }: { children: ReactNode }) {
   const setExtraction = (value: Extraction | undefined) => {
     rawSetExtraction(value);
     setManualMetrics([]);
-    setConfirmedMetrics([]);
-    setReviewedMetrics([]);
+    setReviewedMetrics(
+      value?.measurements
+        ? (Object.keys(value.measurements) as Metric[]).filter(
+            (k) => (value.measurements[k] ?? 0) > 0,
+          )
+        : [],
+    );
     setSaved(false);
   };
 
@@ -115,25 +112,9 @@ export function MeasurementProvider({ children }: { children: ReactNode }) {
       [key]: value,
     }));
     setManualMetrics((previous) => [...new Set([...previous, key])]);
-    setConfirmedMetrics((previous) => previous.filter((m) => m !== key));
     setReviewedMetrics((previous) => [...new Set([...previous, key])]);
     setEdited(true);
     setSaved(false);
-  };
-
-  const confirmMeasurement = (key: Metric) => {
-    setConfirmedMetrics((previous) => [...new Set([...previous, key])]);
-    setManualMetrics((previous) => previous.filter((m) => m !== key));
-    setReviewedMetrics((previous) => [...new Set([...previous, key])]);
-  };
-
-  const confirmAll = () => {
-    if (!measurements) return;
-    const toConfirm = (
-      extraction?.quality?.requires_manual_review ?? []
-    ).filter((key) => measurements[key] > 0);
-    setConfirmedMetrics((previous) => [...new Set([...previous, ...toConfirm])]);
-    setReviewedMetrics((previous) => [...new Set([...previous, ...toConfirm])]);
   };
 
   const setFile = (value: File | undefined) => {
@@ -142,7 +123,6 @@ export function MeasurementProvider({ children }: { children: ReactNode }) {
     setMeasurements(undefined);
     setEdited(false);
     setManualMetrics([]);
-    setConfirmedMetrics([]);
     setReviewedMetrics([]);
     setSaved(false);
     try {
@@ -181,10 +161,7 @@ export function MeasurementProvider({ children }: { children: ReactNode }) {
         setEdited,
         reviewedMetrics,
         manualMetrics,
-        confirmedMetrics,
         correctMeasurement,
-        confirmMeasurement,
-        confirmAll,
         saved,
         setSaved,
       }}

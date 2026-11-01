@@ -49,7 +49,7 @@ test("real arm-down photo recovers torso and hip estimates with a visible review
     }
     await expect(
       page.getByRole("button", { name: "Save measurements", exact: true }),
-    ).toBeDisabled();
+    ).toBeEnabled();
     await page.screenshot({
       path: `${evidence}/semantic-v6-live.png`,
       fullPage: true,
@@ -212,9 +212,9 @@ test("partial scan keeps skeleton, exposes uncertainty and requires each flagged
   await expect(
     page.getByRole("img", { name: /all 33 pose landmarks/ }),
   ).toBeVisible();
-  await expect(
-    page.getByRole("status", { name: "Measurement quality" }),
-  ).toContainText("Some measurements need review");
+  await expect(page.locator(".action-bar-status")).toContainText(
+    "Missing values: Enter tape measurements for Chest circumference",
+  );
   await expect(
     page.getByRole("button", { name: "Save measurements", exact: true }),
   ).toBeDisabled();
@@ -231,7 +231,7 @@ test("partial scan keeps skeleton, exposes uncertainty and requires each flagged
     .click();
   await page.getByLabel("Chest circumference in centimeters").fill("96.5");
   await page.getByRole("button", { name: "Save", exact: true }).click();
-  await expect(sizeLink).toHaveAttribute("aria-disabled", "true");
+  await expect(sizeLink).not.toHaveAttribute("aria-disabled", "true");
   await page.setViewportSize({ width: 375, height: 812 });
   await page.screenshot({
     path: `${evidence}/partial-scan-mobile.png`,
@@ -246,16 +246,8 @@ test("partial scan keeps skeleton, exposes uncertainty and requires each flagged
     (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze())
       .violations,
   ).toEqual([]);
-  // Navigation via the sidebar cannot bypass the same quality gate.
+  // Navigation via the sidebar retains valid measurements.
   await page.getByRole("link", { name: "Size", exact: true }).click();
-  await expect(
-    page.getByRole("button", { name: "Find my size", exact: true }),
-  ).toBeDisabled();
-  await expect(
-    page.getByText("Photo measurements need review:", { exact: false }),
-  ).toContainText("Waist circumference");
-  await page.getByRole("button", { name: "Edit values", exact: true }).click();
-  await page.getByLabel("Waist circumference", { exact: true }).fill("84.5");
   await expect(
     page.getByRole("button", { name: "Find my size", exact: true }),
   ).toBeEnabled();
@@ -397,7 +389,7 @@ test("unavailable thigh stays explicit through inches and manual correction", as
   ).toHaveCount(0);
 });
 
-test("recovered numeric estimate remains review-required until a manual correction", async ({
+test("recovered numeric estimate directly enables Save and Find My Size while allowing manual edit", async ({
   page,
 }) => {
   // Controlled response-shape regression, not a real photo accuracy assessment.
@@ -450,18 +442,21 @@ test("recovered numeric estimate remains review-required until a manual correcti
     .locator(".metric-card")
     .filter({ hasText: "Chest circumference" });
   await expect(chest.locator(".metric-value")).toContainText("98.0");
-  await expect(chest).toContainText("Image-guided refinement");
+  await expect(chest).toContainText("Photo estimate");
   await expect(
     chest.getByLabel("Chest circumference measurement status"),
-  ).toContainText("evidence score 80/100 (not accuracy)");
+  ).toContainText("score 80/100 (not accuracy)");
   await expect(
     page.getByRole("button", { name: "Save measurements", exact: true }),
-  ).toBeDisabled();
+  ).toBeEnabled();
+  await expect(
+    page.getByRole("link", { name: "Find my size", exact: true }),
+  ).not.toHaveClass(/disabled-link/);
   await page.getByLabel("Display measurements in").selectOption("in");
   await expect(chest.locator(".metric-value")).toContainText("38.6");
   await expect(
     page.getByRole("button", { name: "Save measurements", exact: true }),
-  ).toBeDisabled();
+  ).toBeEnabled();
   await page
     .getByRole("button", { name: "Edit Chest circumference", exact: true })
     .click();
@@ -481,7 +476,7 @@ test("recovered numeric estimate remains review-required until a manual correcti
   ).not.toHaveClass(/disabled-link/);
 });
 
-test("confirming estimates enables Find My Size and preserves values on refresh", async ({
+test("extracted estimates directly enable Find My Size without confirmation and preserve values on refresh", async ({
   page,
 }) => {
   await page.route("**/api/v1/measurements/extract", (route) =>
@@ -525,8 +520,6 @@ test("confirming estimates enables Find My Size and preserves values on refresh"
               evidence_confidence: 0.85,
               requires_manual_review: true,
               reason: "image_refinement_estimate",
-              message:
-                "Estimated from visible clothing edges. Confirm with a tape measure.",
             },
             waist_circumference: {
               status: "review_required",
@@ -534,8 +527,6 @@ test("confirming estimates enables Find My Size and preserves values on refresh"
               evidence_confidence: 0.85,
               requires_manual_review: true,
               reason: "image_refinement_estimate",
-              message:
-                "Estimated from visible clothing edges. Confirm with a tape measure.",
             },
             hip_circumference: {
               status: "review_required",
@@ -543,8 +534,6 @@ test("confirming estimates enables Find My Size and preserves values on refresh"
               evidence_confidence: 0.85,
               requires_manual_review: true,
               reason: "image_refinement_estimate",
-              message:
-                "Estimated from visible clothing edges. Confirm with a tape measure.",
             },
             thigh_circumference: {
               status: "estimated",
@@ -575,46 +564,29 @@ test("confirming estimates enables Find My Size and preserves values on refresh"
     exact: true,
   });
 
-  // Initially review required: Find My Size is disabled
-  await expect(findSizeLink).toHaveClass(/disabled-link/);
-  await expect(page.locator(".action-bar-status")).toContainText(
-    "Review needed",
-  );
-
-  // Confirm one estimate (Chest)
-  const chest = page
-    .locator(".metric-card")
-    .filter({ hasText: "Chest circumference" });
-  await chest.getByRole("button", { name: /Confirm/ }).click();
-  await expect(chest).toContainText("Confirmed estimate");
-
-  // Waist and Hip still need review
-  await expect(findSizeLink).toHaveClass(/disabled-link/);
-
-  // Confirm remaining estimates via "Confirm all estimates"
-  await page
-    .getByRole("button", { name: "Confirm all estimates", exact: true })
-    .click();
-
-  // Now all estimates are confirmed
+  // Directly enabled: NO confirmation required
   await expect(findSizeLink).not.toHaveClass(/disabled-link/);
   await expect(page.locator(".action-bar-status")).toContainText(
-    "Measurements approved",
+    "All measurements ready",
   );
   await expect(
     page.getByRole("button", { name: "Save measurements", exact: true }),
   ).toBeEnabled();
 
-  // Refresh page: verify measurements and approved status persist from session
+  // No "Some measurements need review" heading or "Confirm all estimates" button
+  await expect(page.getByText("Some measurements need review")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /Confirm/ })).toHaveCount(0);
+
+  // Refresh page: verify measurements persist from session
   await page.reload();
   await expect(findSizeLink).not.toHaveClass(/disabled-link/);
   const reloadedChest = page
     .locator(".metric-card")
     .filter({ hasText: "Chest circumference" });
   await expect(reloadedChest.locator(".metric-value")).toContainText("92.0");
-  await expect(reloadedChest).toContainText("Confirmed estimate");
+  await expect(reloadedChest).toContainText("Photo estimate");
 
-  // Click Find my size: navigates to /sizing
+  // Click Find my size: navigates directly to /sizing without any intermediate modal or confirmation
   await findSizeLink.click();
   await expect(page).toHaveURL(/\/sizing$/);
   await expect(page.getByText("Your next size")).toBeVisible();

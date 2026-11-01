@@ -13,35 +13,31 @@ const payload = (
   chart: ChartSummary,
   measurements: Measurements,
   extraction?: Extraction,
-  reviewed: Metric[] = [],
-) => ({
-  brand_id: chart.brand_id,
-  apparel_id: chart.apparel_id,
-  chart_version: chart.version,
-  ...(extraction?.measurement_id
-    ? {
-        measurement_id: extraction.measurement_id,
-        measurement_overrides: Object.fromEntries(
-          reviewed
-            .filter(
-              (key) =>
-                measurements[key] > 0 &&
-                (!chart.active_metrics || chart.active_metrics.includes(key)),
-            )
-            .map((key) => [key, measurements[key]]),
-        ),
-      }
-    : {
-        measurements: Object.fromEntries(
-          Object.entries(measurements).filter(
-            ([key, value]) =>
-              value > 0 &&
-              (!chart.active_metrics ||
-                chart.active_metrics.includes(key as keyof Measurements)),
+  _reviewed: Metric[] = [],
+) => {
+  const activeMetrics = (Object.keys(measurements) as Metric[]).filter(
+    (key) =>
+      measurements[key] > 0 &&
+      (!chart.active_metrics || chart.active_metrics.includes(key)),
+  );
+  return {
+    brand_id: chart.brand_id,
+    apparel_id: chart.apparel_id,
+    chart_version: chart.version,
+    ...(extraction?.measurement_id
+      ? {
+          measurement_id: extraction.measurement_id,
+          measurement_overrides: Object.fromEntries(
+            activeMetrics.map((key) => [key, measurements[key]]),
           ),
-        ),
-      }),
-});
+        }
+      : {
+          measurements: Object.fromEntries(
+            activeMetrics.map((key) => [key, measurements[key]]),
+          ),
+        }),
+  };
+};
 export const sizingService = {
   brands: () => api<Brand[]>("/api/v1/sizing/brands?include_demo=true"),
   chart: (chart: ChartSummary) =>

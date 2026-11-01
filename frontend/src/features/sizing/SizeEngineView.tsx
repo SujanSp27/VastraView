@@ -66,14 +66,14 @@ export default function SizeEngineView() {
   const metrics = chart
     ? (chart.active_metrics ?? (Object.keys(chart.sizes[0].bounds) as Metric[]))
     : [];
-  const needsReview = (
-    active.extraction?.quality.requires_manual_review ?? []
-  ).filter(
-    (key) => metrics.includes(key) && !active.reviewedMetrics.includes(key),
-  );
+  const missing = chart
+    ? metrics.filter(
+        (key) => !active.measurements?.[key] || active.measurements[key] <= 0,
+      )
+    : [];
   const valid =
     !!active.measurements &&
-    !needsReview.length &&
+    missing.length === 0 &&
     metrics.every((key) => {
       const n = active.measurements![key];
       return (
@@ -392,11 +392,11 @@ export default function SizeEngineView() {
                   )}
                 </div>
               )}
-              {needsReview.length > 0 && (
+              {missing.length > 0 && (
                 <p role="status" className="fine-print">
-                  Photo measurements need review:{" "}
-                  {needsReview.map((key) => metricLabels[key]).join(", ")}.
-                  Enter tape measurements before comparing sizes.
+                  Missing required measurements:{" "}
+                  {missing.map((key) => metricLabels[key]).join(", ")}.
+                  Enter values before comparing sizes.
                 </p>
               )}
               <button

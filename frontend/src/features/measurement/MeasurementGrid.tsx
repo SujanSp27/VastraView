@@ -20,19 +20,13 @@ export const validMeasurements = (values?: Measurements) =>
 export default function MeasurementGrid({
   values,
   onChange,
-  onConfirm,
   quality,
-  reviewed = [],
   manualMetrics = [],
-  confirmedMetrics = [],
 }: {
   values?: Measurements;
   onChange: (values: Measurements, changed: Metric) => void;
-  onConfirm?: (key: Metric) => void;
   quality?: Extraction["quality"];
-  reviewed?: Metric[];
   manualMetrics?: Metric[];
-  confirmedMetrics?: Metric[];
 }) {
   const { user } = useAuth();
   const [unit, setUnit] = useState<"cm" | "in">(user?.measurement_unit ?? "cm");
@@ -61,35 +55,20 @@ export default function MeasurementGrid({
             <div className="row-between">
               <span className="metric-index">M{index + 1}</span>
               {values && (
-                <div className="metric-actions">
-                  {quality?.metrics?.[key]?.requires_manual_review &&
-                    !reviewed.includes(key) &&
-                    values[key] > 0 &&
-                    onConfirm && (
-                      <button
-                        type="button"
-                        className="text-button confirm-btn"
-                        aria-label={`Confirm ${metricLabels[key]}`}
-                        onClick={() => onConfirm(key)}
-                      >
-                        Confirm
-                      </button>
-                    )}
-                  <button
-                    type="button"
-                    className="text-button"
-                    aria-label={`Edit ${metricLabels[key]}`}
-                    onClick={() => {
-                      setEdit(key);
-                      setDraft(
-                        values[key] ? (values[key] / factor).toFixed(1) : "",
-                      );
-                      setError("");
-                    }}
-                  >
-                    Edit
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  className="text-button"
+                  aria-label={`Edit ${metricLabels[key]}`}
+                  onClick={() => {
+                    setEdit(key);
+                    setDraft(
+                      values[key] ? (values[key] / factor).toFixed(1) : "",
+                    );
+                    setError("");
+                  }}
+                >
+                  Edit
+                </button>
               )}
             </div>
             <span className="metric-name">{metricLabels[key]}</span>
@@ -155,14 +134,13 @@ export default function MeasurementGrid({
               </div>
             )}
             <span className="metric-caption">
-              {manualMetrics.includes(key) ||
-              (reviewed.includes(key) && !confirmedMetrics.includes(key))
+              {manualMetrics.includes(key)
                 ? "Manually corrected"
-                : confirmedMetrics.includes(key)
-                  ? "Confirmed estimate"
+                : values?.[key]
+                  ? "Photo estimate"
                   : (quality?.metrics?.[key]?.message ??
                     (values
-                      ? "Photo estimate · accuracy is not calibrated"
+                      ? "Unavailable · enter a tape measurement"
                       : "Available after your scan"))}
             </span>
             {values && (
@@ -170,18 +148,13 @@ export default function MeasurementGrid({
                 className="metric-caption"
                 aria-label={`${metricLabels[key]} measurement status`}
               >
-                {manualMetrics.includes(key) ||
-                (reviewed.includes(key) && !confirmedMetrics.includes(key))
-                  ? "Manual entry · image confidence does not apply"
-                  : confirmedMetrics.includes(key)
+                {manualMetrics.includes(key)
+                  ? "Manual entry"
+                  : values[key]
                     ? quality?.metrics?.[key]?.evidence_confidence != null
-                      ? `Confirmed photo estimate · evidence score ${Math.round(quality.metrics[key]!.evidence_confidence! * 100)}/100`
-                      : "Confirmed photo estimate · confidence not calibrated"
-                    : values[key]
-                      ? quality?.metrics?.[key]?.evidence_confidence != null
-                        ? `Image estimate · evidence score ${Math.round(quality.metrics[key]!.evidence_confidence! * 100)}/100 (not accuracy)`
-                        : "Image estimate · confidence not calibrated"
-                      : "Unavailable · enter a tape measurement"}
+                      ? `Photo estimate · evidence score ${Math.round(quality.metrics[key]!.evidence_confidence! * 100)}/100 (not accuracy)`
+                      : "Photo estimate"
+                    : "Unavailable · enter a tape measurement"}
               </small>
             )}
           </article>

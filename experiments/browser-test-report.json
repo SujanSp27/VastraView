@@ -123,12 +123,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 18461,
+                  "duration": 18899,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T06:46:15.455Z",
+                  "startTime": "2026-11-01T07:04:52.314Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -157,12 +157,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4947,
+                  "duration": 4733,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T06:46:35.731Z",
+                  "startTime": "2026-11-01T07:05:11.464Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -191,12 +191,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3606,
+                  "duration": 3258,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T06:46:40.710Z",
+                  "startTime": "2026-11-01T07:05:16.227Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -225,12 +225,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3297,
+                  "duration": 3334,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T06:46:44.336Z",
+                  "startTime": "2026-11-01T07:05:19.502Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -240,7 +240,7 @@
           ],
           "id": "979d83d7751e37979a71-ef7775d4e835ecc76189",
           "file": "measurement-quality.spec.ts",
-          "line": 265,
+          "line": 257,
           "column": 1
         },
         {
@@ -259,12 +259,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2184,
+                  "duration": 1507,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T06:46:47.681Z",
+                  "startTime": "2026-11-01T07:05:22.851Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -274,11 +274,11 @@
           ],
           "id": "979d83d7751e37979a71-faeb0a0f1b04bf2c431b",
           "file": "measurement-quality.spec.ts",
-          "line": 316,
+          "line": 308,
           "column": 1
         },
         {
-          "title": "recovered numeric estimate remains review-required until a manual correction",
+          "title": "recovered numeric estimate directly enables Save and Find My Size while allowing manual edit",
           "ok": true,
           "tags": [],
           "tests": [
@@ -293,12 +293,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2502,
+                  "duration": 2153,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T06:46:49.899Z",
+                  "startTime": "2026-11-01T07:05:24.372Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -306,13 +306,13 @@
               "status": "expected"
             }
           ],
-          "id": "979d83d7751e37979a71-2c983fd5d6b69161b981",
+          "id": "979d83d7751e37979a71-92a5ecc89fe6007a3dd8",
           "file": "measurement-quality.spec.ts",
-          "line": 400,
+          "line": 392,
           "column": 1
         },
         {
-          "title": "confirming estimates enables Find My Size and preserves values on refresh",
+          "title": "extracted estimates directly enable Find My Size without confirmation and preserve values on refresh",
           "ok": true,
           "tags": [],
           "tests": [
@@ -327,12 +327,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3234,
+                  "duration": 2532,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T06:46:52.421Z",
+                  "startTime": "2026-11-01T07:05:26.541Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -340,9 +340,9 @@
               "status": "expected"
             }
           ],
-          "id": "979d83d7751e37979a71-c307d3ef3b2f4afe2283",
+          "id": "979d83d7751e37979a71-882ede3d04ffcf0468b7",
           "file": "measurement-quality.spec.ts",
-          "line": 484,
+          "line": 479,
           "column": 1
         }
       ]
@@ -350,8 +350,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-11-01T06:46:14.012Z",
-    "duration": 43424.824,
+    "startTime": "2026-11-01T07:04:51.157Z",
+    "duration": 39210.312,
     "expected": 7,
     "skipped": 0,
     "unexpected": 0,

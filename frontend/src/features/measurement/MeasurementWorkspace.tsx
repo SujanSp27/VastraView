@@ -14,7 +14,7 @@ import { useToast } from "../../components/ui/Toast";
 import { ErrorNotice } from "../../components/feedback/Feedback";
 import { thumbnail } from "../../utils/images";
 import { usePublicConfig } from "../../services/usePublicConfig";
-import { metricLabels, type Measurements } from "../../types/studio";
+import { metricLabels, type Measurements, type Metric } from "../../types/studio";
 export default function MeasurementWorkspace() {
   const state = useMeasurement();
   const configuration = usePublicConfig();
@@ -27,9 +27,9 @@ export default function MeasurementWorkspace() {
   const [camera, setCamera] = useState(false);
   const [login, setLogin] = useState(false);
   const pending = useRef<AbortController | null>(null);
-  const needsReview = (
-    state.extraction?.quality.requires_manual_review ?? []
-  ).filter((key) => !state.reviewedMetrics.includes(key));
+  const missingMetrics = (Object.keys(metricLabels) as Metric[]).filter(
+    (key) => !state.measurements?.[key] || state.measurements[key] <= 0,
+  );
   useEffect(() => {
     setError("");
   }, [state.file, state.height]);
@@ -95,11 +95,7 @@ export default function MeasurementWorkspace() {
         ) as Measurements,
       );
       state.setEdited(false);
-      notify(
-        result.quality.requires_manual_review?.length
-          ? "Pose found. Review flagged measurements."
-          : "Your six estimates are ready. Review and correct them before choosing a size.",
-      );
+      notify("Your measurements are ready.");
     } catch (e) {
       if (!controller.signal.aborted) setError((e as Error).message);
     } finally {
@@ -111,7 +107,7 @@ export default function MeasurementWorkspace() {
       setLogin(true);
       return;
     }
-    if (!state.measurements || needsReview.length) return;
+    if (!state.measurements || !validMeasurements(state.measurements)) return;
     setSaving(true);
     setError("");
     try {
@@ -302,48 +298,11 @@ export default function MeasurementWorkspace() {
               : "6 dimensions · centimeters"}
         </span>
       </div>
-      {needsReview.length > 0 && (
-        <section
-          className="estimate-details"
-          role="status"
-          aria-label="Measurement quality"
-        >
-          <div className="row-between">
-            <strong>Some measurements need review</strong>
-            <button
-              type="button"
-              className="button secondary small"
-              onClick={() => state.confirmAll()}
-            >
-              <Check size={14} /> Confirm all estimates
-            </button>
-          </div>
-          <p>
-            Your pose was detected, but the clothing outline cannot provide all
-            body dimensions reliably. Confirm the estimates if satisfied, or edit
-            with a tape measure.
-          </p>
-          {needsReview.map((key) => (
-            <p key={key}>
-              <strong>{metricLabels[key]}:</strong>{" "}
-              {state.extraction?.quality.metrics?.[key]?.message ??
-                "Confirm this dimension with a tape measure before sizing."}
-            </p>
-          ))}
-          <p>
-            Landmark visibility is not measurement accuracy. Unavailable
-            dimensions are left blank.
-          </p>
-        </section>
-      )}
       <MeasurementGrid
         values={state.measurements}
         quality={state.extraction?.quality}
-        reviewed={state.reviewedMetrics}
         manualMetrics={state.manualMetrics}
-        confirmedMetrics={state.confirmedMetrics}
         onChange={(values, key) => state.correctMeasurement(key, values[key])}
-        onConfirm={(key) => state.confirmMeasurement(key)}
       />
       {state.extraction && (
         <details className="estimate-details">
@@ -356,24 +315,20 @@ export default function MeasurementWorkspace() {
       <div className="action-bar">
         <div>
           <p>
-            <strong>Your numbers, your control.</strong> Confirm estimates or enter
-            tape measurements.
+            <strong>Your numbers, your control.</strong> Edit any value with
+            your tape measurements if desired.
           </p>
           {state.measurements && (
             <p className="action-bar-status">
-              {needsReview.length > 0 ? (
+              {missingMetrics.length > 0 ? (
                 <span className="status-note status-warning">
-                  Review needed: Confirm or edit{" "}
-                  {needsReview.map((key) => metricLabels[key]).join(", ")}{" "}
-                  to enable size matching.
-                </span>
-              ) : !validMeasurements(state.measurements) ? (
-                <span className="status-note status-warning">
-                  Missing values: Enter tape measurements for all dimensions before proceeding.
+                  Missing values: Enter tape measurements for{" "}
+                  {missingMetrics.map((key) => metricLabels[key]).join(", ")}{" "}
+                  before proceeding.
                 </span>
               ) : (
                 <span className="status-note status-ready">
-                  <Check size={13} /> Measurements approved and ready for size matching.
+                  <Check size={13} /> All measurements ready for size matching.
                 </span>
               )}
             </p>
@@ -382,11 +337,7 @@ export default function MeasurementWorkspace() {
         <div className="actions">
           <button
             className="button secondary"
-            disabled={
-              !validMeasurements(state.measurements) ||
-              !!needsReview.length ||
-              saving
-            }
+            disabled={!validMeasurements(state.measurements) || saving}
             onClick={() => void save()}
           >
             {saving ? (
@@ -402,13 +353,11 @@ export default function MeasurementWorkspace() {
             )}
           </button>
           <Link
-            className={`button ${!validMeasurements(state.measurements) || needsReview.length ? "disabled-link" : ""}`}
-            aria-disabled={
-              !validMeasurements(state.measurements) || !!needsReview.length
-            }
+            className={`button ${!validMeasurements(state.measurements) ? "disabled-link" : ""}`}
+            aria-disabled={!validMeasurements(state.measurements)}
             to="/sizing"
             onClick={(e) => {
-              if (!validMeasurements(state.measurements) || needsReview.length) {
+              if (!validMeasurements(state.measurements)) {
                 e.preventDefault();
               }
             }}
