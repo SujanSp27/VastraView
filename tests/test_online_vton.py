@@ -77,6 +77,28 @@ def test_missing_cloud_config_fails_without_local_fallback(tmp_path):
     assert not list(tmp_path.iterdir())
 
 
+@pytest.mark.parametrize("kind", ["dress", "jumpsuit", "blouse"])
+def test_worker_capability_preserves_exact_category_without_changing_model_mapping(tmp_path, kind):
+    categories = []
+    def transport(request):
+        if request.url.path.endswith("/status"):
+            return httpx.Response(200, json={"data": [{"ready": True, "device": "cuda",
+                "modelRevision": "7720683168567eb5a2a4c67f15116c6e29c83ded", "garmentCategories": list(MODEL_CATEGORIES)}]})
+        if request.method == "POST":
+            categories.append(json.loads(request.content)["data"][3])
+            return httpx.Response(200, json={"event_id": "typed"})
+        payload = {"model": "FASHN VTON 1.5", "device": "cuda", "image": base64.b64encode(png()).decode()}
+        return httpx.Response(200, text="event: complete\ndata: " + json.dumps([payload]) + "\n\n")
+    worker = OnlineTryOn("https://private.gradio.live", "x" * 32, transport=httpx.MockTransport(transport))
+    assert worker.availability(check_connection=True)["available"]
+    worker.render(png(), png(), kind, "flat-lay", tmp_path)
+    assert categories == [kind]
+    # A different worker must not inherit the old worker's capability.
+    worker.url = "https://replacement.gradio.live"
+    worker.render(png(), png(), kind, "flat-lay", tmp_path)
+    assert categories[-1] == MODEL_CATEGORIES[kind]
+
+
 def test_stream_interruption_recovers_same_event_without_another_generation(tmp_path, monkeypatch):
     monkeypatch.setattr('backend.app.online_vton.time.sleep', lambda _: None)
     calls = []

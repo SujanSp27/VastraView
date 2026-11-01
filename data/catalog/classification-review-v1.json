@@ -1,0 +1,2347 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-11-01",
+  "scope": "90 current entries; 6 legacy references separately audited",
+  "garments": [
+    {
+      "id": "hm-baggy-jeans-1",
+      "filename": "assets/garments/baggy-jeans1_hm.jpg",
+      "imageSha256": "f4737ede840d0d82e36af6c74ac19a7d5d41939703ccc116e01338a016ebc2fb",
+      "previous": {
+        "category": "jeans",
+        "subcategory": "jeans",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "jeans",
+        "subcategory": "jeans",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Jeans",
+        "coverage": "lower-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": false,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "hm-formal-pant-1",
+      "filename": "assets/garments/formal-pant1_hm.jpg",
+      "imageSha256": "df111b1a2027b1715ff066556c6de0a5a611d04f3130d8645cc145c5476fe8d5",
+      "previous": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Trousers",
+        "coverage": "lower-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": false,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "hm-formal-pant-2",
+      "filename": "assets/garments/formal-pant2_hm.jpg",
+      "imageSha256": "7ee6ab137cae4ff4c44d94ecc4108845095932029269970d0f08c1967b2d4588",
+      "previous": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Trousers",
+        "coverage": "lower-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": false,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "hm-full-hand-t-shirt",
+      "filename": "assets/garments/full-hand-t-shirt_hm.jpg",
+      "imageSha256": "9fb36540320eca25c6eca1d8888e476af582c7290fcff8a378e425478da1c439",
+      "previous": {
+        "category": "t-shirt",
+        "subcategory": "t-shirt",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "sweater",
+        "subcategory": "cardigan",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Cardigans",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "hm-half-hand-shirt-1",
+      "filename": "assets/garments/half-hand-shirt1_hm.jpg",
+      "imageSha256": "c8418406cc49f52e95c227e7e5a42737f6b3d144530992bbcbe92c001f95119a",
+      "previous": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": false,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "hm-oversized-shirt",
+      "filename": "assets/garments/oversized-shirt_hm.jpg",
+      "imageSha256": "436f388e9df2390f99a970054acb49c4d68968d66f4632ce48d7b6d890f358c8",
+      "previous": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": false,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "hm-pant-1",
+      "filename": "assets/garments/pant1_hm.jpg",
+      "imageSha256": "caef61990b9fccd1273db861bfb193d79a33c08d89ab3bdc88b74820a4e87c22",
+      "previous": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Trousers",
+        "coverage": "lower-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": false,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "hm-pant-2",
+      "filename": "assets/garments/pant2_hm.jpg",
+      "imageSha256": "5f1927c5390871b614d9d43747ad10f8973e7f6e3e3db5c128c4eb9197af6139",
+      "previous": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Trousers",
+        "coverage": "lower-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": false,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "hm-pant-3",
+      "filename": "assets/garments/pant3_hm.jpg",
+      "imageSha256": "7537dca6b25d2a3c04b2524b37b1bc5be38c52e4e5a4ddf11ecb20ad0887c91a",
+      "previous": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Trousers",
+        "coverage": "lower-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": false,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "hm-polo-t-shirt-1",
+      "filename": "assets/garments/polo-t-shirt1_hm.jpg",
+      "imageSha256": "1e218aee3b94cfa2401c4d29adaa6003e94625e86e11c061c49f58d4e9a74ccb",
+      "previous": {
+        "category": "t-shirt",
+        "subcategory": "polo",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "t-shirt",
+        "subcategory": "polo",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Polo shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": false,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "hm-round-neck-t-shirt",
+      "filename": "assets/garments/round-neck-t-shirt_hm.jpg",
+      "imageSha256": "6dc17800d864e3738a6fcf9cda84026b8b96986aefd274000960f019f97df452",
+      "previous": {
+        "category": "t-shirt",
+        "subcategory": "t-shirt",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "t-shirt",
+        "subcategory": "t-shirt",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "T-shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": false,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "hm-shirt-1",
+      "filename": "assets/garments/shirt_hm.jpg",
+      "imageSha256": "e30eee20bbb980748b0ed4e508586b3a508683fe9114fc4ad805066bcbf98b96",
+      "previous": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": false,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "hm-shirt-2",
+      "filename": "assets/garments/shirt2_hm.jpg",
+      "imageSha256": "18cedba977c2a08469d3ac20cf114a3e663375253e81d1d7cb8fd5dbeb7b818b",
+      "previous": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": false,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "hm-t-shirt",
+      "filename": "assets/garments/t-shirt_hm.jpg",
+      "imageSha256": "4516cfc7f7e4a7f62a13e8069a205b470db99282b74145d9f3accf7860344f29",
+      "previous": {
+        "category": "t-shirt",
+        "subcategory": "polo",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "t-shirt",
+        "subcategory": "polo",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Polo shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": false,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "levis-full-hand-shirt-1",
+      "filename": "assets/garments/levi's-full-hand-shirt_levis.jpeg",
+      "imageSha256": "1fef51fa2bf0b9023b0719167918d16fd87c38e468e8e29c5ea87f0bbfa3cbe5",
+      "previous": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "model"
+      },
+      "classification": {
+        "mainCategory": "Shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "levis-jeans-1",
+      "filename": "assets/garments/levi's-jeans_levis.jpeg",
+      "imageSha256": "13d321e89f761e584038add43513fc9d2a82753fd77b6fc202696fcaeb3570fe",
+      "previous": {
+        "category": "jeans",
+        "subcategory": "jeans",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "jeans",
+        "subcategory": "jeans",
+        "photoType": "model"
+      },
+      "classification": {
+        "mainCategory": "Jeans",
+        "coverage": "lower-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "levis-pant-1",
+      "filename": "assets/garments/levi's-pant_levis.jpeg",
+      "imageSha256": "3c880f755ccca382cf5d51bda0eb175e271cb4ca26333d2a96ff7d5408e0a76e",
+      "previous": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "model"
+      },
+      "classification": {
+        "mainCategory": "Trousers",
+        "coverage": "lower-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "levis-shirt-1",
+      "filename": "assets/garments/levi's-shirt_levis.jpeg",
+      "imageSha256": "33a936406c93d1ca2a4e578716586369c4391b9b8501923ec86815aaf46deafb",
+      "previous": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "model"
+      },
+      "classification": {
+        "mainCategory": "Shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "levis-t-shirt-2",
+      "filename": "assets/garments/levi's-t-shirt-2_levis.jpeg",
+      "imageSha256": "de9c1d027fb61a9c321031ec6ec9856747e72cebc93d8a3c8366a6bb36b85e2e",
+      "previous": {
+        "category": "t-shirt",
+        "subcategory": "t-shirt",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "t-shirt",
+        "subcategory": "polo",
+        "photoType": "model"
+      },
+      "classification": {
+        "mainCategory": "Polo shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "levis-t-shirt-1",
+      "filename": "assets/garments/levi's-t-shirt_levis.jpeg",
+      "imageSha256": "c7e3a2902a820fefe6e8cf2a0bdd034b3c3ed95cf8c9e1190500132b00f159b6",
+      "previous": {
+        "category": "t-shirt",
+        "subcategory": "t-shirt",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "t-shirt",
+        "subcategory": "polo",
+        "photoType": "model"
+      },
+      "classification": {
+        "mainCategory": "Polo shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "levis-trouser-2",
+      "filename": "assets/garments/levi's-trouser-2_levis.jpeg",
+      "imageSha256": "400a76cdb3dcb870b7c28e796eea5bbcd3437a20929b4bda282d1eda8f1a66ef",
+      "previous": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "model"
+      },
+      "classification": {
+        "mainCategory": "Trousers",
+        "coverage": "lower-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "levis-trouser-1",
+      "filename": "assets/garments/levi's-trouser_levis.jpeg",
+      "imageSha256": "00fd584527feb9f0d42f73822ab191a268ad66d55919e93c7c84e7ca50ea5638",
+      "previous": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "model"
+      },
+      "classification": {
+        "mainCategory": "Trousers",
+        "coverage": "lower-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "levis-loose-fit-shirt-1",
+      "filename": "assets/garments/levi's-loose-fit-shirt_levis.jpeg",
+      "imageSha256": "1081efac0b1fa7d122d467442546cfef0840cda0f47d7076b0a5cb5299f505c5",
+      "previous": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "model"
+      },
+      "classification": {
+        "mainCategory": "Shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "levis-oversized-shirt-1",
+      "filename": "assets/garments/levi's-oversized-shirt_levis.jpeg",
+      "imageSha256": "fa7be6bbd04682ded4a6b604f4a2b885785fdede201734d14c3cbee9d591f2e4",
+      "previous": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "model"
+      },
+      "classification": {
+        "mainCategory": "Shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "levis-round-neck-t-shirt-1",
+      "filename": "assets/garments/levi's-round-neck-t-shirt_levis.jpeg",
+      "imageSha256": "4a386fe12d71efdb2a1c825be6221f30b967410a015e9d8ae217516a7718c961",
+      "previous": {
+        "category": "t-shirt",
+        "subcategory": "t-shirt",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "t-shirt",
+        "subcategory": "t-shirt",
+        "photoType": "model"
+      },
+      "classification": {
+        "mainCategory": "T-shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "westside-baggy-jeans-1",
+      "filename": "assets/garments/baggy-jeans_westside.jpeg",
+      "imageSha256": "091184e4f0ef6f28555d3f12c8b958217d6438057fe3d42a9c47c3fcab1391fa",
+      "previous": {
+        "category": "jeans",
+        "subcategory": "jeans",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "model"
+      },
+      "classification": {
+        "mainCategory": "Trousers",
+        "coverage": "lower-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "westside-full-hand-t-shirt-1",
+      "filename": "assets/garments/full-hand-t-shirt_westside.jpeg",
+      "imageSha256": "8cdeb374412166af682acd84f9b2cb0d3fff20c1df8ef1d02f7b0269a6ee424a",
+      "previous": {
+        "category": "t-shirt",
+        "subcategory": "t-shirt",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "model"
+      },
+      "classification": {
+        "mainCategory": "Shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "westside-full-sleeve-t-shirt-2",
+      "filename": "assets/garments/full-sleeve-t-shirt_westside.jpeg",
+      "imageSha256": "fbbaab7ef2397cc11a1b2777fc9c0c75ab37e716e6d19cd278371cf2fbd0c4ab",
+      "previous": {
+        "category": "t-shirt",
+        "subcategory": "t-shirt",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "t-shirt",
+        "subcategory": "t-shirt",
+        "photoType": "model"
+      },
+      "classification": {
+        "mainCategory": "T-shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "westside-grey-baggy-jeans-1",
+      "filename": "assets/garments/grey-baggy-jeans_westside.jpeg",
+      "imageSha256": "d4bb975b3974dfafa6460633c14653ada7fd6ba0bd7a2949361efced0579354f",
+      "previous": {
+        "category": "jeans",
+        "subcategory": "jeans",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "model"
+      },
+      "classification": {
+        "mainCategory": "Trousers",
+        "coverage": "lower-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "westside-half-sleeve-shirt-1",
+      "filename": "assets/garments/half-sleeve-shirt_westside.jpeg",
+      "imageSha256": "b1e84a07afa4c8a28cfcf742721165faa0a3eedbdcdbf157be181f1e260ce041",
+      "previous": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": false,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "westside-oversized-shirt-1",
+      "filename": "assets/garments/oversized-shirt_westside.jpeg",
+      "imageSha256": "75f3f181347f84a2dfa40f503cf963d211b921b10fcd4c15938223f38bcbc374",
+      "previous": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "model"
+      },
+      "classification": {
+        "mainCategory": "Shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "westside-shirt-2",
+      "filename": "assets/garments/shirt-2_westside.jpeg",
+      "imageSha256": "c0a6a624f0f8c662dd0d6ca7d4152b257247f71014a017b5bab2a12ede034cb5",
+      "previous": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "model"
+      },
+      "classification": {
+        "mainCategory": "Shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "westside-shirt-1",
+      "filename": "assets/garments/shirt_westside.jpeg",
+      "imageSha256": "462b3e139741e1bf98cc0dc9f703ee0a9d232884b6269fb8f20a90b621c2782a",
+      "previous": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": false,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "westside-sweatshirt-1",
+      "filename": "assets/garments/sweatshirt_westside.jpeg",
+      "imageSha256": "2b10a61ab4db413322d97993db04a8488ac69cfbfe2f2bb2aff878c6273a91c5",
+      "previous": {
+        "category": "sweater",
+        "subcategory": "sweater",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "sweater",
+        "subcategory": "sweater",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Sweaters",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": false,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "westside-t-shirt-1",
+      "filename": "assets/garments/t-shirt_westside.jpeg",
+      "imageSha256": "d48c496ac951cab49ffa73bea7b35cede367b1fac4afe2166723ff8de51493bd",
+      "previous": {
+        "category": "t-shirt",
+        "subcategory": "t-shirt",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "t-shirt",
+        "subcategory": "polo",
+        "photoType": "model"
+      },
+      "classification": {
+        "mainCategory": "Polo shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "westside-trouser-2",
+      "filename": "assets/garments/trouser-2_westside.jpeg",
+      "imageSha256": "c19c86e4995e1117082582a69eb887ab84fa370e6329540dc7bf3d1586843dda",
+      "previous": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "model"
+      },
+      "classification": {
+        "mainCategory": "Trousers",
+        "coverage": "lower-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "westside-trouser-1",
+      "filename": "assets/garments/trouser_westside.jpeg",
+      "imageSha256": "2965f81ecdf575b7d187746c121369d7ffcfcd5ddc8bdd921a933f60e884862a",
+      "previous": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Trousers",
+        "coverage": "lower-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": false,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "westside-trouser-white-1",
+      "filename": "assets/garments/trouser-white_westside.jpeg",
+      "imageSha256": "0a8081d7c1473c10bb7b478764178c26d85ed14f6c348fe4a34bfd485ece354d",
+      "previous": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "flat-lay"
+      },
+      "corrected": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "model"
+      },
+      "classification": {
+        "mainCategory": "Trousers",
+        "coverage": "lower-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "zara-brown-baggy-jeans",
+      "filename": "assets/garments/brown-baggy-jeans_zara.jpg",
+      "imageSha256": "6a23a43bb413a6f7b7b3c134784b9915eb353717c61a86b9e9e22884380b4166",
+      "previous": {
+        "category": "jeans",
+        "subcategory": "jeans",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "jeans",
+        "subcategory": "jeans",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Jeans",
+        "coverage": "lower-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "zara-black-trousers",
+      "filename": "assets/garments/black-trousers_zara.jpg",
+      "imageSha256": "59b27799062c5386ad8bcc432e7ad7252601d5dfc6bcc3409e55639afee8a393",
+      "previous": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Trousers",
+        "coverage": "lower-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "zara-pink-baggy-trousers",
+      "filename": "assets/garments/pink-baggy-trousers_zara.jpg",
+      "imageSha256": "060e8b4f98fe0191c7fd39541357624ca2e07dec67168ac3927d603e1f5e5334",
+      "previous": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Trousers",
+        "coverage": "lower-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "zara-pink-shirt",
+      "filename": "assets/garments/pink-shirt_zara.jpg",
+      "imageSha256": "36de02aa96e420fec36db204dcdc816ff5db74ab09f60a424f721a821811d2b8",
+      "previous": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "zara-white-shirt",
+      "filename": "assets/garments/white-shirt_zara.jpg",
+      "imageSha256": "f32c6fc058e33eb99598316ba0af6d6ba154c7369c4a44b534adf10c4ac4cd12",
+      "previous": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "zara-casual-shirt",
+      "filename": "assets/garments/casual-shirt_zara.jpg",
+      "imageSha256": "74ed354a50c51508705d2b2f0676a34b77271f068915d131b1e2c0479dfa62b8",
+      "previous": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "sweater",
+        "subcategory": "cardigan",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Cardigans",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "zara-cream-shirt",
+      "filename": "assets/garments/cream-shirt_zara.jpg",
+      "imageSha256": "36b0be3dfc7bbc82ca1fe0710f7c75e007713f3a6e656a0c0074ba0a3968f020",
+      "previous": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "zara-oversized-sweatshirt",
+      "filename": "assets/garments/oversized-sweatshirt_zara.jpg",
+      "imageSha256": "52071af94924bb74453769ac321be898d96d827f916b55adb9d49990ba38f4cb",
+      "previous": {
+        "category": "sweater",
+        "subcategory": "sweatshirt",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "sweater",
+        "subcategory": "sweatshirt",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Sweatshirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "zara-crew-sweatshirt",
+      "filename": "assets/garments/crew-sweatshirt_zara.jpg",
+      "imageSha256": "9970556289a5b9f969d0d4e0d98d3c448f921750b1d4bfdfe720d44d7a85b147",
+      "previous": {
+        "category": "sweater",
+        "subcategory": "sweatshirt",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "sweater",
+        "subcategory": "sweatshirt",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Sweatshirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "zara-gathered-top",
+      "filename": "assets/garments/gathered-top_zara.jpg",
+      "imageSha256": "c671741dfd80de847b72fe0a5caf6f376ed10d4944a3c77bebf52a17db2bcd94",
+      "previous": {
+        "category": "blouse",
+        "subcategory": "top",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "jacket",
+        "subcategory": "jacket",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Jackets",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "zara-tailored-suit-set",
+      "filename": "assets/garments/tailored-suit-set_zara.jpg",
+      "imageSha256": "b705306cf113c1f09d3b3d510b47514156c1d237847f91ae6e183b2a5647b907",
+      "previous": {
+        "category": "jumpsuit",
+        "subcategory": "suit",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "jacket",
+        "subcategory": "blazer",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Blazers",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person. Double-breasted blazer only; no lower piece is present. Existing product title retained."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "only-classic-skinny-jeans",
+      "filename": "assets/garments/classic-skinny-jeans_only.jpg",
+      "imageSha256": "329d4ae561ef4839dfa940fbf7124a3ef69f312fa9ac6f0424a4b23cc414d74d",
+      "previous": {
+        "category": "jeans",
+        "subcategory": "jeans",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "jeans",
+        "subcategory": "jeans",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Jeans",
+        "coverage": "lower-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "only-burgundy-shirt",
+      "filename": "assets/garments/burgundy-shirt_only.jpg",
+      "imageSha256": "88cf507279e89ee65796738a861f8f470035d535cbe5c3591e5aedc86233f352",
+      "previous": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "only-ribbed-top",
+      "filename": "assets/garments/ribbed-top_only.jpg",
+      "imageSha256": "83e3cd11445b9fa57e3f7465f0f3886f612489a69a1af24eb821ba227023b442",
+      "previous": {
+        "category": "blouse",
+        "subcategory": "top",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "only-cream-trousers",
+      "filename": "assets/garments/cream-trousers_only.jpg",
+      "imageSha256": "fed4ed7f24d0450003c423e6eb2b5edaacd32b65c6263c29df7a59d3f3d50b11",
+      "previous": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Trousers",
+        "coverage": "lower-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "only-floral-dress",
+      "filename": "assets/garments/floral-dress_only.jpg",
+      "imageSha256": "1cab4a35c6757fc5cab5bfa01b665ea0df52668eeece4acb1a6ee5aebec24936",
+      "previous": {
+        "category": "dress",
+        "subcategory": "dress",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "dress",
+        "subcategory": "dress",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Dresses",
+        "coverage": "full-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "only-pink-trousers",
+      "filename": "assets/garments/pink-trousers_only.jpg",
+      "imageSha256": "84a803d8d3011b86684686519aeac92fcca5e8993896893bf884f05e6e68b140",
+      "previous": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Trousers",
+        "coverage": "lower-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "only-red-trousers",
+      "filename": "assets/garments/red-trousers_only.jpg",
+      "imageSha256": "2e5d7e2679e4ce917db645f9b4041b108c22112bcdca689d48487165f0339fbf",
+      "previous": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Trousers",
+        "coverage": "lower-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "only-sleeveless-top",
+      "filename": "assets/garments/sleeveless-top_only.jpg",
+      "imageSha256": "dcb39576c0ff715c12789a4b4b7e9639a04bacfa1207c069873a93c38778b7d6",
+      "previous": {
+        "category": "blouse",
+        "subcategory": "top",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "t-shirt",
+        "subcategory": "oversized-tee",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "T-shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "only-pink-top",
+      "filename": "assets/garments/pink-top_only.jpg",
+      "imageSha256": "c5231fdbc9730098ab0e5318559b022df45a59a8184107f1dbf8d8067a93ce68",
+      "previous": {
+        "category": "blouse",
+        "subcategory": "top",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "t-shirt",
+        "subcategory": "crop-top",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "T-shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "only-nude-top",
+      "filename": "assets/garments/nude-top_only.jpg",
+      "imageSha256": "10ee85d1eec24adcb321f354c9442a8562e954877515b74df98f0697f6b7cf86",
+      "previous": {
+        "category": "blouse",
+        "subcategory": "top",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "t-shirt",
+        "subcategory": "polo",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Polo shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "only-white-top",
+      "filename": "assets/garments/white-top_only.jpg",
+      "imageSha256": "bc607716023d1934a2dd97a851c7401000058016e2ce4a4b4a1ceeb41f0099ad",
+      "previous": {
+        "category": "blouse",
+        "subcategory": "top",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "sweater",
+        "subcategory": "polo",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Polo shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "only-relaxed-top",
+      "filename": "assets/garments/relaxed-top_only.jpg",
+      "imageSha256": "77cbcad5745f64b45806c706ccba2489a0db19477f2a99efcc4e34a48a584854",
+      "previous": {
+        "category": "blouse",
+        "subcategory": "top",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "sweater",
+        "subcategory": "sweater",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Sweaters",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "only-white-trousers",
+      "filename": "assets/garments/white-trousers_only.jpg",
+      "imageSha256": "6ccd6c6e85938c2a3ca186f4b2cd58ebf7a9941d7708bb856cdc9702bafefadb",
+      "previous": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Trousers",
+        "coverage": "lower-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "marks-and-spencer-black-ankle-trousers",
+      "filename": "assets/garments/black-ankle-trousers_marks-and-spencer.jpg",
+      "imageSha256": "79ad44003a6c45f586904c959522e7c4b83a532f3173b4daed734edbeb2ec41b",
+      "previous": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Trousers",
+        "coverage": "lower-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "marks-and-spencer-brown-tapered-trousers",
+      "filename": "assets/garments/brown-tapered-trousers_marks-and-spencer.jpg",
+      "imageSha256": "f009b01976e6e5d1538fbf55f07f45ad2374ffb0b11040f1cc0b363c3357b7ae",
+      "previous": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Trousers",
+        "coverage": "lower-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "marks-and-spencer-cream-wide-leg-trousers",
+      "filename": "assets/garments/cream-wide-leg-trousers_marks-and-spencer.jpg",
+      "imageSha256": "e58019a0cb4730544ac12cfa017eb7782b055e0045f0c0158307201c4110b2e8",
+      "previous": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Trousers",
+        "coverage": "lower-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "marks-and-spencer-printed-midi-dress",
+      "filename": "assets/garments/printed-midi-dress_marks-and-spencer.jpg",
+      "imageSha256": "7ac7f71bf441338254d60234bff55496bc69196ccaa7f623c025473095fd31ad",
+      "previous": {
+        "category": "dress",
+        "subcategory": "dress",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "dress",
+        "subcategory": "dress",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Dresses",
+        "coverage": "full-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person. Full-resolution image shows a continuous mini shirt-dress hem, not shorts; product name/length claim needs source verification."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "marks-and-spencer-pure-linen-shirt",
+      "filename": "assets/garments/pure-linen-shirt_marks-and-spencer.jpg",
+      "imageSha256": "bff9ce4bc91e6e83cc37e8cb5cd695f4ff3ba30d9098d2b08b9d78e7ccaac4d5",
+      "previous": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "marks-and-spencer-pink-tailored-trousers",
+      "filename": "assets/garments/pink-tailored-trousers_marks-and-spencer.jpg",
+      "imageSha256": "44154d7da9140b797c08754efcc20c3e28a9a3dad34b87e7f7d323790b7c0e7e",
+      "previous": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Trousers",
+        "coverage": "lower-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "marks-and-spencer-crewneck-sweatshirt",
+      "filename": "assets/garments/crewneck-sweatshirt_marks-and-spencer.jpg",
+      "imageSha256": "e112218184ef5303c6d57c94d733129ff70db1200b22f618d2c8f95f01f9fe3a",
+      "previous": {
+        "category": "sweater",
+        "subcategory": "sweatshirt",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "sweater",
+        "subcategory": "cardigan",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Cardigans",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "marks-and-spencer-relaxed-sweatshirt-02",
+      "filename": "assets/garments/relaxed-sweatshirt-02_marks-and-spencer.jpg",
+      "imageSha256": "c9152a1fb633bfc0557119a15b14e90f4ba1ed8e52c708d6325fb38af33dfe80",
+      "previous": {
+        "category": "sweater",
+        "subcategory": "sweatshirt",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "sweater",
+        "subcategory": "cardigan",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Cardigans",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "marks-and-spencer-pink-cotton-sweatshirt",
+      "filename": "assets/garments/pink-cotton-sweatshirt_marks-and-spencer.jpg",
+      "imageSha256": "25b9148095c82ff935536f75c07b900b850aa03226380a65444808a90323a514",
+      "previous": {
+        "category": "sweater",
+        "subcategory": "sweatshirt",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "sweater",
+        "subcategory": "sweatshirt",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Sweatshirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "marks-and-spencer-floral-wrap-dress",
+      "filename": "assets/garments/floral-wrap-dress_marks-and-spencer.jpg",
+      "imageSha256": "6cb3f2616a4c5900895f4b3e47c7c65616d7d7eecb9a9d0639b2f70ee897ce51",
+      "previous": {
+        "category": "dress",
+        "subcategory": "dress",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "dress",
+        "subcategory": "dress",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Dresses",
+        "coverage": "full-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "marks-and-spencer-maroon-blouse",
+      "filename": "assets/garments/maroon-blouse_marks-and-spencer.jpg",
+      "imageSha256": "687d58c70a5011f207c4bba1dcb3f399746bbb967e760b930051f3e95639de52",
+      "previous": {
+        "category": "blouse",
+        "subcategory": "top",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "t-shirt",
+        "subcategory": "polo",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Polo shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "marks-and-spencer-red-collared-shirt",
+      "filename": "assets/garments/red-collared-shirt_marks-and-spencer.jpg",
+      "imageSha256": "0bcb2ecf4109b82d8adc8582ed4b01c54370967fc1ea7baa7f1cc13f45a5c5e9",
+      "previous": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "marks-and-spencer-cotton-rich-sweatshirt",
+      "filename": "assets/garments/cotton-rich-sweatshirt_marks-and-spencer.jpg",
+      "imageSha256": "5b23fdfd80d346329766bbc49223750d7f66ca9b485d7c29b8ffc8ac5d284fd8",
+      "previous": {
+        "category": "sweater",
+        "subcategory": "sweatshirt",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "t-shirt",
+        "subcategory": "polo",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Polo shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "marks-and-spencer-fleece-sweatshirt-03",
+      "filename": "assets/garments/fleece-sweatshirt-03_marks-and-spencer.jpg",
+      "imageSha256": "bccabbe0099c19bb9549558d598d3172b50927c097eff32af3bf67812968165e",
+      "previous": {
+        "category": "sweater",
+        "subcategory": "sweatshirt",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "sweater",
+        "subcategory": "cardigan",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Cardigans",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "marks-and-spencer-everyday-top",
+      "filename": "assets/garments/everyday-top_marks-and-spencer.jpg",
+      "imageSha256": "25a50ef02a314d788e4469850763ee15741dc80a682e4463e54c13a304795952",
+      "previous": {
+        "category": "blouse",
+        "subcategory": "top",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "blouse",
+        "subcategory": "top",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Blouses",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "vero-moda-maroon-bootcut-jeans",
+      "filename": "assets/garments/maroon-bootcut-jeans_vero-moda.jpg",
+      "imageSha256": "fab41323bd04080e1838f1c2edf3e403197880873f3629bc49a7c5fdd414f89e",
+      "previous": {
+        "category": "jeans",
+        "subcategory": "jeans",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "jeans",
+        "subcategory": "jeans",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Jeans",
+        "coverage": "lower-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "vero-moda-dark-blue-skinny-jeans",
+      "filename": "assets/garments/dark-blue-skinny-jeans_vero-moda.jpg",
+      "imageSha256": "9d6f5ae7ed1edb3ae3d437884861fa8251210033cc701902d2c748485ce0e183",
+      "previous": {
+        "category": "jeans",
+        "subcategory": "jeans",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "jeans",
+        "subcategory": "jeans",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Jeans",
+        "coverage": "lower-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "vero-moda-wrap-midi-dress",
+      "filename": "assets/garments/wrap-midi-dress_vero-moda.jpg",
+      "imageSha256": "fda65b5294692c6d70fe079ef6636e112664715428f56c92e025b70a45fbc438",
+      "previous": {
+        "category": "dress",
+        "subcategory": "dress",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "dress",
+        "subcategory": "dress",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Dresses",
+        "coverage": "full-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "vero-moda-sleeveless-dress",
+      "filename": "assets/garments/sleeveless-dress_vero-moda.jpg",
+      "imageSha256": "29daf2295036f622aa3c90d377878d0b98c21af928d692dd3d01c8a4ddce8835",
+      "previous": {
+        "category": "dress",
+        "subcategory": "dress",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "dress",
+        "subcategory": "dress",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Dresses",
+        "coverage": "full-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person. Image has short sleeves despite retained product title."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "vero-moda-maroon-t-shirt",
+      "filename": "assets/garments/maroon-t-shirt_vero-moda.jpg",
+      "imageSha256": "485f1348166c0b0231673a055db82045fa13a6d4c1551a038eb07a1f3251d95c",
+      "previous": {
+        "category": "t-shirt",
+        "subcategory": "t-shirt",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "t-shirt",
+        "subcategory": "t-shirt",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "T-shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "vero-moda-pink-straight-trousers",
+      "filename": "assets/garments/pink-straight-trousers_vero-moda.jpg",
+      "imageSha256": "35f56ba3969c32994e2de282d13c3f87aa4c955683d8e3ecabab29336cc1cbc6",
+      "previous": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Trousers",
+        "coverage": "lower-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "vero-moda-pink-cocktail-dress",
+      "filename": "assets/garments/pink-cocktail-dress_vero-moda.jpg",
+      "imageSha256": "e91ec23dc936c8fc378808a2760cc6b0c707dfa93e912f7b195093f00cc66cc1",
+      "previous": {
+        "category": "dress",
+        "subcategory": "dress",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "dress",
+        "subcategory": "dress",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Dresses",
+        "coverage": "full-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "vero-moda-pink-peplum-top",
+      "filename": "assets/garments/pink-peplum-top_vero-moda.jpg",
+      "imageSha256": "f7c61085ec1307c78c27105454ed39963c7dd5d24fc923c17267e182c8dba094",
+      "previous": {
+        "category": "blouse",
+        "subcategory": "top",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "blouse",
+        "subcategory": "top",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Blouses",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "vero-moda-printed-shirt",
+      "filename": "assets/garments/printed-shirt_vero-moda.jpg",
+      "imageSha256": "9819ffe7c80139819048390ee2accc81f2ffb0b3c93c97d261d04ae3dd6a211c",
+      "previous": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "vero-moda-tailored-suit-dress",
+      "filename": "assets/garments/tailored-suit-dress_vero-moda.jpg",
+      "imageSha256": "548d1eb17afa5aa8bfa190d4ccc2fd307b8507d7dc75f676ec784a042e5adfdd",
+      "previous": {
+        "category": "dress",
+        "subcategory": "suit",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "jacket",
+        "subcategory": "blazer",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Blazers",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person. Short wrap blazer, not a dress; existing product title retained."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "vero-moda-white-culotte-trousers",
+      "filename": "assets/garments/white-culotte-trousers_vero-moda.jpg",
+      "imageSha256": "c3452ad1d3a5f7bc33e0f57e3452d28f6d38fde9cb5bf99453a767ef5b588e94",
+      "previous": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "trouser",
+        "subcategory": "trouser",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "Trousers",
+        "coverage": "lower-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "vero-moda-white-cotton-t-shirt",
+      "filename": "assets/garments/white-cotton-t-shirt_vero-moda.jpg",
+      "imageSha256": "1a95d02a903daf5fdd1ad6d407adb58566e59cd6aa12d5848116ddf4e832164c",
+      "previous": {
+        "category": "t-shirt",
+        "subcategory": "t-shirt",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "t-shirt",
+        "subcategory": "t-shirt",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "T-shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    },
+    {
+      "id": "vero-moda-yellow-button-down-shirt",
+      "filename": "assets/garments/yellow-button-down-shirt_vero-moda.jpg",
+      "imageSha256": "cf981871783d51f3396363b56754a38e59a5e721efbb16f5f0541f9b212a1a23",
+      "previous": {
+        "category": "shirt",
+        "subcategory": "shirt",
+        "photoType": "model"
+      },
+      "corrected": {
+        "category": "t-shirt",
+        "subcategory": "t-shirt",
+        "photoType": "flat-lay"
+      },
+      "classification": {
+        "mainCategory": "T-shirts",
+        "coverage": "upper-body",
+        "pieces": 1,
+        "status": "image_reviewed",
+        "reviewedAt": "2026-11-01",
+        "notes": "Visually reviewed front reference; category/photo type only, not an inference approval. Audience retained from source metadata, not inferred from a person."
+      },
+      "changed": true,
+      "inferenceStatus": "not_verified_for_current_inputs",
+      "productionApproval": "pending_real_inference_and_visual_review"
+    }
+  ]
+}

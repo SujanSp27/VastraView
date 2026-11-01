@@ -36,6 +36,20 @@ def digest(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def reference_path(row):
+    """Resolve only public garment roots, including the current product assets."""
+    filename = row["filename"]
+    roots = ((ROOT / "data/raw").resolve(), (ROOT / "assets/garments").resolve())
+    candidates = ((roots[0] / filename).resolve(), (ROOT / filename).resolve())
+    allowed = [path for path in candidates if any(path.is_relative_to(root) for root in roots)]
+    for path in allowed:
+        if path.is_file():
+            return path
+    if allowed:
+        return allowed[0]  # Decoder reports a missing file; traversal still fails closed.
+    raise ValueError("Garment reference is missing or outside public garment roots")
+
+
 def save(path: Path, data):
     path.parent.mkdir(parents=True, exist_ok=True)
     temp = path.with_suffix(".partial")
@@ -55,9 +69,7 @@ def catalog_rows(source_manifest: Path | None = None):
         for row in rows:
             if not isinstance(row["id"], str) or not re.fullmatch(r"[a-z0-9][a-z0-9-]{1,79}", row["id"]):
                 raise ValueError("Invalid staged garment ID")
-            path = (ROOT / "data/raw" / row["filename"]).resolve()
-            if not path.is_relative_to((ROOT / "data/raw").resolve()):
-                raise ValueError("Source is outside public catalog assets")
+            path = reference_path(row)
             if row["photoType"] not in {"model", "flat-lay"}:
                 raise ValueError("Unsupported reference photo type")
             if row.get("image_sha256") and digest(path.read_bytes()) != row["image_sha256"]:
@@ -71,12 +83,12 @@ def catalog_rows(source_manifest: Path | None = None):
 
 
 def inspect_source(row):
-    path = (ROOT / "data/raw" / row["filename"]).resolve()
-    if not path.is_relative_to((ROOT / "data/raw").resolve()):
-        raise ValueError("Source is outside public catalog assets")
+    path = reference_path(row)
     report = {"id": row["id"], "name": row["name"], "category": row["category"],
               "modelCategory": MODEL_CATEGORIES.get(row["category"]), "photoType": row["photoType"],
               "path": path.relative_to(ROOT).as_posix(), "commercialUse": row["commercial_use"],
+              "brand": row.get("brand_id"), "subcategory": row.get("subcategory"),
+              "audience": row.get("audience"),
               "inferenceStatus": "not_tested", "visualStatus": "not_reviewed"}
     try:
         data = path.read_bytes()
@@ -130,7 +142,8 @@ def audit(folder: Path, source_manifest: Path | None = None):
          "limitations": "Border and sharpness numbers are triage only, not garment segmentation or fit scores."})
     for i in range(0, len(rows), 20):
         group = rows[i:i + 20]
-        sheet([ROOT / r["path"] for r in group], [r["id"] + "\n" + r["name"] for r in group], folder / f"sources-{i // 20 + 1}.jpg")
+        sheet([ROOT / r["path"] if r["path"] else folder / "missing-image" for r in group],
+              [r["id"] + "\n" + r["name"] for r in group], folder / f"sources-{i // 20 + 1}.jpg")
     print(f"Audited {len(rows)} sources. No garment approved.", flush=True)
 
 
@@ -212,13 +225,13 @@ def run(folder, ids, session_path, people, prepared_dir=None, source_manifest=No
                 if row["category"] not in MODEL_CATEGORIES:
                     raise ValueError("Unsupported category: " + product_id)
                 person = (ROOT / PEOPLE[person_id]).read_bytes()
-                garment_path = prepared_dir / (product_id + ".png") if prepared_dir else ROOT / "data/raw" / row["filename"]
+                garment_path = prepared_dir / (product_id + ".png") if prepared_dir else reference_path(row)
                 garment = garment_path.read_bytes()
                 if prepared_dir:
                     review = json.loads((prepared_dir / (product_id + "-review.json")).read_text())
                     if (review.get("decision") != "accepted_for_experiment"
                             or review.get("preparedSha256") != digest(garment)
-                            or review.get("sourceSha256") != digest((ROOT / "data/raw" / row["filename"]).read_bytes())
+                            or review.get("sourceSha256") != digest(reference_path(row).read_bytes())
                             or not review.get("reviewer") or not review.get("notes")):
                         raise ValueError("Prepared reference must pass a current, explicit boundary review")
                 case = folder / "cases" / product_id / person_id

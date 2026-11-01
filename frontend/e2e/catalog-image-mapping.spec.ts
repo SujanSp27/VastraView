@@ -33,6 +33,46 @@ const product = {
   },
 };
 
+test("empty API collection never repopulates hardcoded products", async ({ page }) => {
+  await page.route("**/api/v1/products?*", (route) =>
+    route.fulfill({ json: { items: [], total: 0, offset: 0, limit: 18 } }),
+  );
+  await page.goto("/catalog");
+  await expect(page.locator(".product-card")).toHaveCount(0);
+  await expect(page.getByText("No published garments match these filters.")).toBeVisible();
+  await page.goto("/tryon");
+  await expect(page.locator(".catalog-item")).toHaveCount(0);
+});
+
+test("failed collection and removed product show retry instead of stale garments", async ({ page }) => {
+  await page.route("**/api/v1/products?*", (route) => route.fulfill({ status: 503 }));
+  await page.route("**/api/v1/products/hm-baggy-jeans-1", (route) =>
+    route.fulfill({ status: 404, json: { detail: "Product is unavailable." } }),
+  );
+  await page.goto("/catalog");
+  await expect(page.getByRole("alert")).toContainText("collection could not load");
+  await expect(page.locator(".product-card")).toHaveCount(0);
+  await page.goto("/tryon?product=hm-baggy-jeans-1");
+  await expect(page.getByRole("button", { name: "Retry collection" })).toBeVisible();
+  await expect(page.getByAltText("Selected garment conditioning image")).toHaveCount(0);
+  await expect(page.locator(".catalog-item")).toHaveCount(0);
+});
+
+test("server pagination is not sliced a second time", async ({ page }) => {
+  await page.route("**/api/v1/products?*", (route) => {
+    const offset = Number(new URL(route.request().url()).searchParams.get("offset") || 0);
+    return route.fulfill({ json: {
+      items: [{ ...product, id: `page-${offset}`, name: `Server page ${offset}` }],
+      total: 19, offset, limit: 18,
+    } });
+  });
+  await page.goto("/catalog");
+  await expect(page.getByRole("button", { name: "View Server page 0" })).toBeVisible();
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await expect(page.getByRole("button", { name: "View Server page 18" })).toBeVisible();
+  await expect(page.locator(".product-card")).toHaveCount(1);
+});
+
 test.beforeEach(async ({ page }) => {
   await page.route("**/api/tryon/availability", (route) =>
     route.fulfill({

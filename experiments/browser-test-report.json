@@ -4,7 +4,9 @@
       "C:\\Program Files\\nodejs\\node.exe",
       "C:\\Users\\Sujan\\OneDrive\\Desktop\\Avatar_Virtual_try_on\\frontend\\node_modules\\@playwright\\test\\cli.js",
       "test",
-      "e2e/measurement-quality.spec.ts"
+      "e2e/results-comparison.spec.ts",
+      "-g",
+      "changing a garment"
     ],
     "configFile": "C:\\Users\\Sujan\\OneDrive\\Desktop\\Avatar_Virtual_try_on\\frontend\\playwright.config.ts",
     "rootDir": "C:/Users/Sujan/OneDrive/Desktop/Avatar_Virtual_try_on/frontend/e2e",
@@ -102,13 +104,13 @@
   },
   "suites": [
     {
-      "title": "measurement-quality.spec.ts",
-      "file": "measurement-quality.spec.ts",
+      "title": "results-comparison.spec.ts",
+      "file": "results-comparison.spec.ts",
       "column": 0,
       "line": 0,
       "specs": [
         {
-          "title": "real arm-down photo recovers torso and hip estimates with a visible review gate",
+          "title": "changing a garment invalidates the saved result; a new job retains mode and uses the new image",
           "ok": true,
           "tags": [],
           "tests": [
@@ -123,12 +125,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 13801,
+                  "duration": 5597,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T09:39:37.188Z",
+                  "startTime": "2026-11-01T10:18:48.187Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -136,247 +138,9 @@
               "status": "expected"
             }
           ],
-          "id": "979d83d7751e37979a71-cf52ffb6109f9cc3c88e",
-          "file": "measurement-quality.spec.ts",
-          "line": 15,
-          "column": 1
-        },
-        {
-          "title": "retry keeps photo and height, then actual CPU extraction feeds owner-scoped sizing",
-          "ok": true,
-          "tags": [],
-          "tests": [
-            {
-              "timeout": 240000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "",
-              "projectName": "",
-              "results": [
-                {
-                  "workerIndex": 0,
-                  "parallelIndex": 0,
-                  "status": "passed",
-                  "duration": 5641,
-                  "errors": [],
-                  "stdout": [],
-                  "stderr": [],
-                  "retry": 0,
-                  "startTime": "2026-11-01T09:39:52.203Z",
-                  "annotations": [],
-                  "attachments": []
-                }
-              ],
-              "status": "expected"
-            }
-          ],
-          "id": "979d83d7751e37979a71-82a68935f3db33cb3f45",
-          "file": "measurement-quality.spec.ts",
-          "line": 80,
-          "column": 1
-        },
-        {
-          "title": "partial scan keeps skeleton, exposes uncertainty and requires each flagged correction",
-          "ok": true,
-          "tags": [],
-          "tests": [
-            {
-              "timeout": 240000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "",
-              "projectName": "",
-              "results": [
-                {
-                  "workerIndex": 0,
-                  "parallelIndex": 0,
-                  "status": "passed",
-                  "duration": 6618,
-                  "errors": [],
-                  "stdout": [],
-                  "stderr": [],
-                  "retry": 0,
-                  "startTime": "2026-11-01T09:39:57.892Z",
-                  "annotations": [],
-                  "attachments": []
-                }
-              ],
-              "status": "expected"
-            }
-          ],
-          "id": "979d83d7751e37979a71-fcf8122ade383dcd46aa",
-          "file": "measurement-quality.spec.ts",
-          "line": 159,
-          "column": 1
-        },
-        {
-          "title": "failed re-extraction clears stale measurements while retaining the selected input",
-          "ok": true,
-          "tags": [],
-          "tests": [
-            {
-              "timeout": 240000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "",
-              "projectName": "",
-              "results": [
-                {
-                  "workerIndex": 0,
-                  "parallelIndex": 0,
-                  "status": "passed",
-                  "duration": 5574,
-                  "errors": [],
-                  "stdout": [],
-                  "stderr": [],
-                  "retry": 0,
-                  "startTime": "2026-11-01T09:40:04.567Z",
-                  "annotations": [],
-                  "attachments": []
-                }
-              ],
-              "status": "expected"
-            }
-          ],
-          "id": "979d83d7751e37979a71-ef7775d4e835ecc76189",
-          "file": "measurement-quality.spec.ts",
-          "line": 264,
-          "column": 1
-        },
-        {
-          "title": "unavailable thigh stays explicit through inches and manual correction",
-          "ok": true,
-          "tags": [],
-          "tests": [
-            {
-              "timeout": 240000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "",
-              "projectName": "",
-              "results": [
-                {
-                  "workerIndex": 0,
-                  "parallelIndex": 0,
-                  "status": "passed",
-                  "duration": 2335,
-                  "errors": [],
-                  "stdout": [],
-                  "stderr": [],
-                  "retry": 0,
-                  "startTime": "2026-11-01T09:40:10.183Z",
-                  "annotations": [],
-                  "attachments": []
-                }
-              ],
-              "status": "expected"
-            }
-          ],
-          "id": "979d83d7751e37979a71-faeb0a0f1b04bf2c431b",
-          "file": "measurement-quality.spec.ts",
-          "line": 315,
-          "column": 1
-        },
-        {
-          "title": "recovered numeric estimate directly enables Save and Find My Size while allowing manual edit",
-          "ok": true,
-          "tags": [],
-          "tests": [
-            {
-              "timeout": 240000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "",
-              "projectName": "",
-              "results": [
-                {
-                  "workerIndex": 0,
-                  "parallelIndex": 0,
-                  "status": "passed",
-                  "duration": 2470,
-                  "errors": [],
-                  "stdout": [],
-                  "stderr": [],
-                  "retry": 0,
-                  "startTime": "2026-11-01T09:40:12.574Z",
-                  "annotations": [],
-                  "attachments": []
-                }
-              ],
-              "status": "expected"
-            }
-          ],
-          "id": "979d83d7751e37979a71-92a5ecc89fe6007a3dd8",
-          "file": "measurement-quality.spec.ts",
-          "line": 399,
-          "column": 1
-        },
-        {
-          "title": "extracted estimates directly enable Find My Size without confirmation and preserve values on refresh",
-          "ok": true,
-          "tags": [],
-          "tests": [
-            {
-              "timeout": 240000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "",
-              "projectName": "",
-              "results": [
-                {
-                  "workerIndex": 0,
-                  "parallelIndex": 0,
-                  "status": "passed",
-                  "duration": 3024,
-                  "errors": [],
-                  "stdout": [],
-                  "stderr": [],
-                  "retry": 0,
-                  "startTime": "2026-11-01T09:40:15.110Z",
-                  "annotations": [],
-                  "attachments": []
-                }
-              ],
-              "status": "expected"
-            }
-          ],
-          "id": "979d83d7751e37979a71-882ede3d04ffcf0468b7",
-          "file": "measurement-quality.spec.ts",
-          "line": 486,
-          "column": 1
-        },
-        {
-          "title": "try a sample modal provides male and female selection with direct photo upload fallback",
-          "ok": true,
-          "tags": [],
-          "tests": [
-            {
-              "timeout": 240000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "",
-              "projectName": "",
-              "results": [
-                {
-                  "workerIndex": 0,
-                  "parallelIndex": 0,
-                  "status": "passed",
-                  "duration": 3161,
-                  "errors": [],
-                  "stdout": [],
-                  "stderr": [],
-                  "retry": 0,
-                  "startTime": "2026-11-01T09:40:18.163Z",
-                  "annotations": [],
-                  "attachments": []
-                }
-              ],
-              "status": "expected"
-            }
-          ],
-          "id": "979d83d7751e37979a71-e36842ae7af1cf4e1ee1",
-          "file": "measurement-quality.spec.ts",
-          "line": 602,
+          "id": "723e605dbfb315118fa3-ad7f6f32dabf559be55b",
+          "file": "results-comparison.spec.ts",
+          "line": 342,
           "column": 1
         }
       ]
@@ -384,9 +148,9 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-11-01T09:39:36.048Z",
-    "duration": 46840.956999999995,
-    "expected": 8,
+    "startTime": "2026-11-01T10:18:46.971Z",
+    "duration": 8353.322,
+    "expected": 1,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0

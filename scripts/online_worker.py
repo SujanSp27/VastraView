@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from ml.errors import PipelineError
 from ml.vton.audit_export import export_audit
+from ml.vton.categories import MODEL_CATEGORIES
 from ml.vton.checked_sampler import CheckedSamplerMixin
 from ml.vton.garment_fidelity import assess_dark_reference
 from ml.vton.garment_reference import prepare_reference
@@ -126,6 +127,8 @@ def main():
     def generate(access_token, person_b64, garment_b64, category, photo_type, steps):
         if not secrets.compare_digest(str(access_token), token):
             raise gr.Error("Invalid worker token")
+        garment_kind = category if category in MODEL_CATEGORIES else None
+        category = MODEL_CATEGORIES.get(category, category)
         if category not in {"tops", "bottoms", "one-pieces"} or photo_type not in {"model", "flat-lay"} or int(steps) not in {10, 15, 20, 30, 50}:
             return {"error": "Unsupported category, garment photo type or step count.", "code": "invalid_input"}
         if max(len(person_b64), len(garment_b64)) > 17 * 1024 * 1024:
@@ -147,7 +150,7 @@ def main():
                 person.save(run / "person-input.png")
                 garment.save(run / "garment-input.png")
                 input_audit = {"person": image_record(person), "garment": image_record(garment),
-                               "category": category, "garmentPhotoType": photo_type, "seed": 42,
+                               "category": category, "garmentKind": garment_kind, "garmentPhotoType": photo_type, "seed": 42,
                                "steps": int(steps), "guidanceScale": guidance,
                                "segmentationFree": segmentation_free}
                 (run / "inputs.json").write_text(json.dumps(input_audit, indent=2))
@@ -201,6 +204,7 @@ def main():
                 composite, alpha, review = preserve_regions(
                     original, generated, labels, target, category,
                     reference_labels=garment_labels if reference_preparation['applied'] else None,
+                    garment_kind=garment_kind,
                 )
                 encoded, patch_metadata = encode_changed_pixels(person, Image.fromarray(composite))
                 # Persist artifacts in Colab for actual visual review and recovery.
@@ -250,6 +254,7 @@ def main():
             return {"ready": False}
         return {"ready": torch.cuda.is_available() and pipeline.tryon_model is not None,
                 "modelRevision": MODEL, "device": "cuda", "protocol": 1,
+                "garmentCategories": list(MODEL_CATEGORIES),
                 "busy": lock.locked()}
 
     def generate_api(access_token, person_b64, garment_b64, category, photo_type, steps):

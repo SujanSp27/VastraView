@@ -115,7 +115,10 @@ def _revealed_region_transitions(alpha, old, source, target, category):
     # Shorter sleeves also uncover background. Without a transition into the
     # adjacent agreeing background, the old sleeve outline remains as a hard
     # polygon even when all of its fabric has been replaced by model output.
-    labels = (0, 12, 14, 16, 5, 6) if category == "tops" else (0, 12, 14, 16)
+    # Semantic agreement does not imply colour/texture agreement. Blending a
+    # generated trouser label into real jeans recolours the non-target garment.
+    # Only newly covered clothing in _top_hem_extension may edit a waistband.
+    labels = (0, 12, 14, 16)
     adjusted = np.zeros_like(old)
     for label in labels:
         revealed = old & (target == label)
@@ -173,13 +176,43 @@ def _cropped_reference_hem(old, target, reference_labels):
     return hem
 
 
-def preserve_regions(original, generated, source, target, category, *, reference_labels=None):
+def _validate_dress(old, source, target):
+    """Reject parsed separates left in a requested dress; never paint them out.
+
+    Parser speckles below 0.5% of original clothing (at least 16 pixels) are
+    diagnostic noise, not proof of leakage. This conservative gate still needs
+    visual review: labels cannot verify a neckline, print, or intended hem.
+    """
+    tolerance = max(16, round(np.count_nonzero(old) * .005))
+    leaked = old & np.isin(target, (3, 5, 6))
+    dress = target == 4
+    if np.count_nonzero(leaked) > tolerance or np.count_nonzero(dress & old) <= tolerance:
+        raise PipelineError("dress_transfer_incomplete",
+                            "The generated dress retained separate clothing or was not identified as a complete dress. "
+                            "This result was rejected. Try a clearer dress reference and similar clothing coverage.")
+    _, components = cv2.connectedComponents(dress.astype(np.uint8), connectivity=8)
+    regions = [components[dress & (source == 3)],
+               components[dress & np.isin(source, (5, 6))]]
+    # A tiny detached skirt touching a few old-shirt pixels does not establish
+    # continuity. The dominant dress component in each original region must agree.
+    if all(region.size for region in regions) and len({int(np.bincount(region).argmax()) for region in regions}) != 1:
+        raise PipelineError("dress_transfer_incomplete", "The generated dress is split into disconnected clothing regions. This result was rejected.")
+    return int(np.count_nonzero(leaked))
+
+
+def preserve_regions(original, generated, source, target, category, *, reference_labels=None, garment_kind=None):
     if category not in LABELS:
         raise ValueError("Unknown garment category")
     if original.shape != generated.shape or source.shape != original.shape[:2] or target.shape != source.shape:
         raise ValueError("Images and label maps must have matching dimensions")
     old = np.isin(source, LABELS[category])
     new = np.isin(target, GENERATED_LABELS[category])
+    if garment_kind in {"dress", "jumpsuit"} and category != "one-pieces":
+        raise ValueError("Full-body garment requires one-pieces model routing")
+    dress_leakage = None
+    if garment_kind == "dress":
+        dress_leakage = _validate_dress(old, source, target)
+        new = target == 4
     head = np.isin(source, (1, 2, 9, 11))
     if np.count_nonzero(head) < source.size * .001:
         raise PipelineError("face_not_visible", "Use a clear photo with the person's face and hair visible.")
@@ -241,9 +274,16 @@ def preserve_regions(original, generated, source, target, category, *, reference
     alpha[projected] = 1.
     transitions = _revealed_region_transitions(alpha, old, source, target, category)
     alpha[protected] = 0.
+    non_target = (np.isin(source, (5, 6, 7)) & ~hem_extension if category == "tops"
+                  else source == 3 if category == "bottoms" else np.zeros_like(old))
+    alpha[non_target] = 0.
     output = np.rint(generated * alpha[..., None] + original * (1 - alpha[..., None])).clip(0, 255).astype(np.uint8)
     return output, alpha, {
         "identityPreservedExactly": bool(np.array_equal(output[protected], original[protected])),
+        "nonTargetClothingPreservedExactly": bool(np.array_equal(output[non_target], original[non_target])),
+        "garmentKind": garment_kind,
+        "dressSeparateClothingPixels": dress_leakage,
+        "changedNonTargetClothingPixels": int(np.count_nonzero(np.any(output != original, axis=2) & non_target)),
         "changedPixelsOutsideEditMask": int(np.count_nonzero(np.any(output != original, axis=2) & (alpha == 0))),
         "oldClothingMinimumAlpha": float(alpha[old & ~protected].min()),
         "editedPixels": int(np.count_nonzero(alpha)),
@@ -253,6 +293,6 @@ def preserve_regions(original, generated, source, target, category, *, reference
         "revealedRegionTransitionPixels": int(np.count_nonzero(transitions & ~protected)),
         "referenceCropHemPixels": int(np.count_nonzero(crop_hem)),
         "estimatedPreviouslyHiddenSkinPixels": int(np.count_nonzero(revealed_skin & ~protected)),
-        "compositor": "semantic-category-preservation-v9",
+        "compositor": "semantic-category-preservation-v10",
         "limitations": "Semantic parsing can mislabel seams and skin. Newly exposed skin is generated, not observed anatomy. Visual review is still required.",
     }

@@ -131,6 +131,7 @@ class OnlineTryOn:
         self._checked_url = ""
         self._checked_token = ""
         self._reachable = False
+        self._garment_categories = frozenset()
 
     def refresh_connection(self):
         if not self.read_connection_file or not settings.online_connection_path.is_file():
@@ -172,8 +173,11 @@ class OnlineTryOn:
                                 status = json.loads(status)
                             self._reachable = (isinstance(status, dict) and status.get("ready") is True and status.get("device") == "cuda"
                                 and status.get("modelRevision") == "7720683168567eb5a2a4c67f15116c6e29c83ded")
+                            kinds = status.get("garmentCategories", []) if isinstance(status, dict) else []
+                            self._garment_categories = frozenset(kinds) if self._reachable and isinstance(kinds, list) and all(isinstance(k, str) for k in kinds) else frozenset()
                     except (httpx.HTTPError, ValueError, TypeError, AttributeError):
                         self._reachable = False
+                        self._garment_categories = frozenset()
                     self._checked_at, self._checked_url = time.monotonic(), url
                     self._checked_token = token
                 reachable = self._reachable
@@ -207,8 +211,14 @@ class OnlineTryOn:
         input_encoding = settings.online_vton_input_encoding
         person_upload = conditioning_image(person_png, input_encoding)
         garment_upload = conditioning_image(garment_png, input_encoding)
+        # New workers preserve dress/jumpsuit identity while still sending the
+        # official broad category to FASHN. Old workers retain their six-argument
+        # protocol. Capabilities belong to the exact checked URL and credential.
+        with self._health_lock:
+            typed = (url == self._checked_url and token == self._checked_token
+                     and category in self._garment_categories)
         data = [token, base64.b64encode(person_upload).decode(),
-                base64.b64encode(garment_upload).decode(), MODEL_CATEGORIES[category],
+                base64.b64encode(garment_upload).decode(), category if typed else MODEL_CATEGORIES[category],
                 photo_type, settings.online_vton_steps]
         encoding_seconds = time.perf_counter() - encoding_started
         try:

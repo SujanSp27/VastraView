@@ -56,6 +56,7 @@ TAXONOMY = [
     ("hoodie", "Hoodies", "layers", "sweater"),
     ("sweatshirt", "Sweatshirts", "layers", "sweater"),
     ("sweater", "Sweaters", "layers", "sweater"),
+    ("cardigan", "Cardigans", "layers", "sweater"),
     ("jacket", "Jackets", "layers", "jacket"),
     ("jeans", "Jeans", "bottoms", "jeans"),
     ("trouser", "Trousers", "bottoms", "trouser"),
@@ -176,6 +177,34 @@ def initialize_catalog(db):
     return assets_ready
 
 
+def apply_classification_review(db):
+    """Apply image-reviewed metadata only to unchanged source records.
+
+    Never alter approval, names, ownership, favorites, or operator corrections.
+    A changed reference needs another image review before this migration applies.
+    """
+    review = json.loads((ROOT / "data/catalog/classification-review-v1.json").read_text(encoding="utf-8"))
+    applied, skipped = [], []
+    for item in review["garments"]:
+        path = (ROOT / item["filename"]).resolve()
+        if (not path.is_relative_to((ROOT / "assets/garments").resolve()) or not path.is_file()
+                or hashlib.sha256(path.read_bytes()).hexdigest() != item["imageSha256"]):
+            skipped.append(item["id"])
+            continue
+        result = db.products.update_one(
+            {"_id": item["id"], "filename": item["filename"], "$or": [item["previous"], item["corrected"]]},
+            {"$set": {**item["corrected"], "classification": item["classification"]}},
+        )
+        (applied if result.matched_count else skipped).append(item["id"])
+    db.categories.update_one(
+        {"_id": "cardigan"},
+        {"$setOnInsert": {"name": "Cardigans", "group": "layers", "model_category": "sweater",
+                          "audiences": ["men", "women", "unisex"],
+                          "support_note": "Single garment preview; fidelity varies."}}, upsert=True,
+    )
+    return {"applied": applied, "skipped": skipped}
+
+
 def catalog_db(db=Depends(account_db)):
     # Seed uses setOnInsert: never overwrite operator-curated product metadata.
     if not db.catalog_versions.find_one({"_id": 2}):
@@ -243,6 +272,9 @@ def catalog_db(db=Depends(account_db)):
             {"_id": "vero-moda"}, {"$set": {"name": "Vero Moda", "partnership": True}}, upsert=True
         )
         db.catalog_versions.update_one({"_id": 8}, {"$set": {"installed": True}}, upsert=True)
+    if not db.catalog_versions.find_one({"_id": 9}):
+        result = apply_classification_review(db)
+        db.catalog_versions.update_one({"_id": 9}, {"$set": {"installed": True, **result}}, upsert=True)
     return db
 
 

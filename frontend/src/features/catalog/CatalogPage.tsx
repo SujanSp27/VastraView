@@ -11,9 +11,6 @@ import Modal from "../../components/ui/Modal";
 import { useToast } from "../../components/ui/Toast";
 import type { Garment } from "../tryon/GarmentPicker";
 import ProductImage from "./ProductImage";
-import {
-  filterDiscoveredGarments,
-} from "./discoveredGarments";
 
 export type Product = Garment & {
   brand_name: string;
@@ -90,62 +87,16 @@ export default function CatalogPage() {
       }),
     ])
       .then(([b, c, f, q]) => {
-        const featuredBrands = [
-          { id: "h-m", name: "H&M", product_count: 14 },
-          { id: "levi-s", name: "Levi's", product_count: 11 },
-          { id: "westside", name: "Westside", product_count: 13 },
-          { id: "zara", name: "Zara", product_count: 11 },
-          { id: "only", name: "ONLY", product_count: 13 },
-          { id: "marks-and-spencer", name: "Marks & Spencer", product_count: 15 },
-          { id: "vero-moda", name: "Vero Moda", product_count: 13 },
-        ];
-        const customIds = new Set(featuredBrands.map((x) => x.id));
-        const bFiltered = b.filter((item) => !customIds.has(item.id));
-        setBrands([...featuredBrands, ...bFiltered]);
-        setCategories(
-          c.length
-            ? c
-            : [
-                { id: "jeans", name: "Jeans", group: "bottoms", model_category: "jeans", support_note: "Single garment preview." },
-                { id: "trouser", name: "Trousers & Formal Trousers", group: "bottoms", model_category: "trouser", support_note: "Single garment preview." },
-                { id: "t-shirt", name: "T-Shirts (Full Sleeve & Round Neck)", group: "tops", model_category: "t-shirt", support_note: "Single garment preview." },
-                { id: "shirt", name: "Shirts (Half Sleeve & Oversized)", group: "tops", model_category: "shirt", support_note: "Single garment preview." },
-                { id: "polo", name: "Polo T-Shirts", group: "tops", model_category: "t-shirt", support_note: "Single garment preview." },
-                { id: "sweater", name: "Sweaters & Sweatshirts", group: "layers", model_category: "sweater", support_note: "Single garment preview." },
-              ],
-        );
-        setFacets(
-          f.colors?.length
-            ? f
-            : {
-                colors: ["beige", "black", "blue", "brown", "burgundy", "cream", "grey", "pink", "white"],
-                occasions: ["business", "casual", "formal", "vacation"],
-              },
-        );
+        if (controller.signal.aborted) return;
+        setBrands(b);
+        setCategories(c);
+        setFacets(f);
         setQuality(q);
       })
       .catch(() => {
-        setBrands([
-          { id: "h-m", name: "H&M", product_count: 14 },
-          { id: "levi-s", name: "Levi's", product_count: 11 },
-          { id: "westside", name: "Westside", product_count: 13 },
-          { id: "zara", name: "Zara", product_count: 11 },
-          { id: "only", name: "ONLY", product_count: 13 },
-          { id: "marks-and-spencer", name: "Marks & Spencer", product_count: 15 },
-          { id: "vero-moda", name: "Vero Moda", product_count: 13 },
-        ]);
-        setCategories([
-          { id: "jeans", name: "Jeans", group: "bottoms", model_category: "jeans", support_note: "Single garment preview." },
-          { id: "trouser", name: "Trousers & Formal Trousers", group: "bottoms", model_category: "trouser", support_note: "Single garment preview." },
-          { id: "t-shirt", name: "T-Shirts (Full Sleeve & Round Neck)", group: "tops", model_category: "t-shirt", support_note: "Single garment preview." },
-          { id: "shirt", name: "Shirts (Half Sleeve & Oversized)", group: "tops", model_category: "shirt", support_note: "Single garment preview." },
-          { id: "polo", name: "Polo T-Shirts", group: "tops", model_category: "t-shirt", support_note: "Single garment preview." },
-          { id: "sweater", name: "Sweaters & Sweatshirts", group: "layers", model_category: "sweater", support_note: "Single garment preview." },
-        ]);
-        setFacets({
-          colors: ["beige", "black", "blue", "brown", "burgundy", "cream", "grey", "pink", "white"],
-          occasions: ["business", "casual", "formal", "vacation"],
-        });
+        if (!controller.signal.aborted) {
+          setError("Collection filters could not load. Please retry.");
+        }
       });
     return () => controller.abort();
   }, [retry]);
@@ -166,44 +117,15 @@ export default function CatalogPage() {
       if (color) params.set("color", color);
       if (occasion) params.set("occasion", occasion);
 
-      const fallbackList = filterDiscoveredGarments({
-        query,
-        brand,
-        category,
-        audience,
-        color,
-        occasion,
-        sort,
-      });
-
       api<Page>(`/api/v1/products?${params}`, { signal: controller.signal })
         .then((data) => {
-          if (!data?.items?.length) {
-            setPage({
-              items: fallbackList.slice(offset, offset + 18),
-              total: fallbackList.length,
-              limit: 18,
-              offset,
-            });
-            return;
-          }
-          const existingIds = new Set(data.items.map((i) => i.id));
-          const missing = fallbackList.filter((d: Product) => !existingIds.has(d.id));
-          const allItems = [...missing, ...data.items];
-          setPage({
-            items: allItems.slice(offset, offset + 18),
-            total: allItems.length,
-            limit: 18,
-            offset,
-          });
+          if (!controller.signal.aborted) setPage(data);
         })
         .catch(() => {
-          setPage({
-            items: fallbackList.slice(offset, offset + 18),
-            total: fallbackList.length,
-            limit: 18,
-            offset,
-          });
+          if (!controller.signal.aborted) {
+            setPage(undefined);
+            setError("The collection could not load. Please retry.");
+          }
         })
         .finally(() => {
           if (!controller.signal.aborted) setLoading(false);
@@ -234,21 +156,8 @@ export default function CatalogPage() {
           </span>
           <h1>Discover Now</h1>
           <p>
-            {brand === "h-m"
-              ? "Explore our curated collection of 14 verified H&M garments, compare your size, and preview them with personalized virtual try-on."
-              : brand === "levi-s"
-              ? "Explore our verified collection of 11 Levi's denim, shirts, and trousers, compare your size, and preview them with personalized virtual try-on."
-              : brand === "westside"
-              ? "Explore our verified collection of 13 Westside apparel pieces, compare your size, and preview them with personalized virtual try-on."
-              : brand === "zara"
-              ? "Explore our verified collection of 11 Zara garments, compare your size, and preview them with personalized virtual try-on."
-              : brand === "only"
-              ? "Explore our verified collection of 13 ONLY garments, compare your size, and preview them with personalized virtual try-on."
-              : brand === "marks-and-spencer"
-              ? "Explore our verified collection of 15 Marks & Spencer garments, compare your size, and preview them with personalized virtual try-on."
-              : brand === "vero-moda"
-              ? "Explore our verified collection of 13 Vero Moda garments, compare your size, and preview them with personalized virtual try-on."
-              : "Explore verified garment collections from Zara, H&M, Levi's, Marks & Spencer, ONLY, Vero Moda, and Westside, compare your size, and preview them with personalized virtual try-on."}
+            Explore the collection, compare your size, and preview supported garments
+            with personalized virtual try-on. Visual fidelity varies by garment and photo.
           </p>
         </div>
       </header>

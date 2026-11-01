@@ -346,6 +346,7 @@ test("changing a garment invalidates the saved result; a new job retains mode an
   await expect(viewer).toHaveAttribute("data-loaded", "true");
   await viewer.getByRole("button", { name: "Slider", exact: true }).click();
   await page.getByRole("button", { name: "Try sample photos" }).click();
+  await page.getByRole("button", { name: "Select Male Model", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Generate try-on", exact: true }),
   ).toBeEnabled();

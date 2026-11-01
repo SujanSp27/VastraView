@@ -171,14 +171,14 @@ def test_projection_does_not_hide_a_broad_shrunken_arm(person):
     np.testing.assert_array_equal(image, generated)
 
 
-@pytest.mark.parametrize("label", [0, 12, 16, 6])
+@pytest.mark.parametrize("label", [0, 12, 16])
 def test_newly_exposed_material_has_a_bounded_same_material_transition(person, label):
     original, generated, source = person
     source[35:45, 65:95] = label
     target = source.copy()
     target[45:49, 65:95] = label
     image, alpha, report = preserve_regions(original, generated, source, target, "tops")
-    # A skin/denim band exposed by removing clothing stays fully generated.
+    # A skin/background band exposed by removing clothing stays generated.
     assert np.all(alpha[45:49, 65:95] == 1)
     # The boundary no longer abruptly switches to an unrelated source shade.
     assert alpha[44, 80] == 1
@@ -188,6 +188,22 @@ def test_newly_exposed_material_has_a_bounded_same_material_transition(person, l
     np.testing.assert_array_equal(image[source == 1], original[source == 1])
     np.testing.assert_array_equal(image[source == 13], original[source == 13])
     np.testing.assert_array_equal(image[alpha == 0], original[alpha == 0])
+
+
+@pytest.mark.parametrize("label", [5, 6])
+def test_shorter_top_never_blends_generated_colour_into_original_bottom(person, label):
+    original, generated, source = person
+    source[source == 6] = label
+    original[source == label] = (35, 90, 170)  # Actual blue denim.
+    generated[source == label] = (25, 20, 15)  # Unwanted brown/black prediction.
+    target = source.copy()
+    target[121:125, 45:115] = label  # A shorter top reveals a new waistband.
+    image, alpha, report = preserve_regions(original, generated, source, target, "tops")
+    assert np.all(alpha[121:125, 45:115] == 1)
+    assert not alpha[source == label].any()
+    np.testing.assert_array_equal(image[source == label], original[source == label])
+    assert report["nonTargetClothingPreservedExactly"]
+    assert report["changedNonTargetClothingPixels"] == 0
 
 
 def test_transition_does_not_cross_clothing_to_disconnected_skin(person):
@@ -291,3 +307,43 @@ def test_long_reference_and_other_categories_do_not_get_crop_exception(person):
     target[target == 6] = 0
     with pytest.raises(PipelineError, match='expose too much skin'):
         preserve_regions(original, generated, source, target, 'one-pieces', reference_labels=cropped_reference())
+
+
+def test_dress_replaces_top_and_trousers_as_one_continuous_region(person):
+    original, generated, source = person
+    target = source.copy()
+    target[np.isin(source, (3, 6))] = 4
+    image, alpha, report = preserve_regions(original, generated, source, target, "one-pieces", garment_kind="dress")
+    clothing = np.isin(source, (3, 6))
+    assert np.all(alpha[clothing] == 1)
+    np.testing.assert_array_equal(image[clothing], generated[clothing])
+    np.testing.assert_array_equal(image[source == 15], original[source == 15])
+    assert report["dressSeparateClothingPixels"] == 0
+
+
+@pytest.mark.parametrize("remaining", [3, 5, 6])
+def test_dress_cannot_succeed_with_separate_original_clothing(person, remaining):
+    original, generated, source = person
+    target = source.copy()
+    target[np.isin(source, (3, 6))] = 4
+    target[140:180, 50:110] = remaining
+    with pytest.raises(PipelineError) as error:
+        preserve_regions(original, generated, source, target, "one-pieces", garment_kind="dress")
+    assert error.value.code == "dress_transfer_incomplete"
+
+
+def test_jumpsuit_does_not_use_dress_only_parser_gate(person):
+    original, generated, source = person
+    _, _, report = preserve_regions(original, generated, source, source.copy(), "one-pieces", garment_kind="jumpsuit")
+    assert report["dressSeparateClothingPixels"] is None
+
+
+def test_dress_category_mismatch_and_disconnected_dress_are_rejected(person):
+    original, generated, source = person
+    target = source.copy()
+    target[np.isin(source, (3, 6))] = 4
+    with pytest.raises(ValueError, match="one-pieces"):
+        preserve_regions(original, generated, source, target, "tops", garment_kind="dress")
+    target[122:124, 45:115] = 0
+    with pytest.raises(PipelineError, match="disconnected"):
+        preserve_regions(original, generated, source, target, "one-pieces", garment_kind="dress")
