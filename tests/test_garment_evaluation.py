@@ -1,13 +1,11 @@
 """Unit and regression tests for the automated garment evaluation system."""
 
-import json
-from pathlib import Path
-
 import numpy as np
 import pytest
 from PIL import Image
 
 from backend.app.config import ROOT
+from scripts import evaluate_garments
 from scripts.evaluate_garments import (
     compute_color_histogram_correlation,
     compute_edge_density_similarity,
@@ -59,14 +57,46 @@ def test_evaluate_trial_baseline(tmp_path, monkeypatch):
     if not person_path.is_file() or not garment_path.is_file():
         pytest.skip("Test sample assets unavailable.")
         
+    monkeypatch.setattr(evaluate_garments, "OUTPUT_DIR", tmp_path)
+    class Offline:
+        def availability(self, **kwargs):
+            return {"available": False}
+        def render(self, *args):
+            pytest.fail("An offline worker must not be called")
     res = evaluate_trial(
-        trial_name="test-trial-mock",
-        person_path=person_path,
-        garment_path=garment_path,
-        category="shirt",
-        photo_type="flat-lay",
+        trial_name="test-trial-offline", person_path=person_path,
+        garment_path=garment_path, category="shirt", worker=Offline(),
     )
-    assert res["status"] in {"completed", "offline_simulated"}
-    assert res["dimensionMatch"] is True
-    assert "comparisonBoardUrl" in res
-    assert res["preservationScore"] >= 0.0
+    assert res["status"] == "blocked"
+    assert "preservationScore" not in res and "comparisonBoardUrl" not in res
+    assert not (tmp_path / "test-trial-offline/tryon-2d.png").exists()
+    assert res["visualApproval"] == "not_reviewed"
+
+
+@pytest.mark.parametrize("mode", ["unchanged", "mismatch", "failure"])
+def test_generated_file_does_not_prove_transfer(tmp_path, monkeypatch, mode):
+    monkeypatch.setattr(evaluate_garments, "OUTPUT_DIR", tmp_path)
+    person_path = ROOT / "data/raw/studio-person.jpg"
+    garment_path = ROOT / "assets/garments/shirt_hm.jpg"
+
+    class Worker:
+        def availability(self, **kwargs):
+            return {"available": True}
+
+        def render(self, person, garment, category, photo_type, folder):
+            if mode == "failure":
+                raise RuntimeError("Disconnected")
+            if mode == "unchanged":
+                (folder / "tryon-2d.png").write_bytes(evaluate_garments.normalized_image(person))
+            else:
+                Image.new("RGB", (128, 128)).save(folder / "tryon-2d.png")
+            return {"testOnly": True}
+
+    res = evaluate_trial("failure-case", person_path, garment_path, "shirt", worker=Worker())
+    assert res["status"] == "failed"
+    assert res["visualApproval"] == "not_reviewed"
+    assert res.get("preservationScore", 0) == 0
+    first = (tmp_path / "failure-case/evaluation-result.json").read_bytes()
+    second = evaluate_trial("failure-case", person_path, garment_path, "shirt", worker=Worker())
+    assert second["outputDirectory"] != res["outputDirectory"]
+    assert (tmp_path / "failure-case/evaluation-result.json").read_bytes() == first

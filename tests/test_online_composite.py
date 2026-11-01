@@ -171,7 +171,7 @@ def test_projection_does_not_hide_a_broad_shrunken_arm(person):
     np.testing.assert_array_equal(image, generated)
 
 
-@pytest.mark.parametrize("label", [0, 12, 16])
+@pytest.mark.parametrize("label", [0])
 def test_newly_exposed_material_has_a_bounded_same_material_transition(person, label):
     original, generated, source = person
     source[35:45, 65:95] = label
@@ -204,6 +204,19 @@ def test_shorter_top_never_blends_generated_colour_into_original_bottom(person, 
     np.testing.assert_array_equal(image[source == label], original[source == label])
     assert report["nonTargetClothingPreservedExactly"]
     assert report["changedNonTargetClothingPixels"] == 0
+
+
+@pytest.mark.parametrize("label", [12, 14, 16])
+def test_revealed_skin_does_not_recolour_adjacent_existing_skin(person, label):
+    original, generated, source = person
+    source[35:45, 65:95] = label
+    target = source.copy()
+    target[45:49, 65:95] = label
+    image, alpha, report = preserve_regions(original, generated, source, target, "tops")
+    assert np.all(alpha[45:49, 65:95] == 1)  # Previously hidden skin is still generated.
+    assert not alpha[source == label].any()
+    np.testing.assert_array_equal(image[source == label], original[source == label])
+    assert report["visibleSkinPreservedExactly"]
 
 
 def test_transition_does_not_cross_clothing_to_disconnected_skin(person):
@@ -347,3 +360,21 @@ def test_dress_category_mismatch_and_disconnected_dress_are_rejected(person):
     target[122:124, 45:115] = 0
     with pytest.raises(PipelineError, match="disconnected"):
         preserve_regions(original, generated, source, target, "one-pieces", garment_kind="dress")
+
+
+def test_bottoms_reject_invented_shirt_extension_instead_of_a_double_hem(person):
+    original, generated, source = person
+    target = source.copy()
+    target[125:135, 45:115] = 3
+    with pytest.raises(PipelineError) as error:
+        preserve_regions(original, generated, source, target, "bottoms")
+    assert error.value.code == "non_target_garment_changed"
+
+
+def test_bottoms_parser_speckle_does_not_erase_valid_lower_garment(person):
+    original, generated, source = person
+    target = source.copy()
+    target[130, 60] = 3
+    image, _, report = preserve_regions(original, generated, source, target, "bottoms")
+    np.testing.assert_array_equal(image[source == 3], original[source == 3])
+    assert report["changedNonTargetClothingPixels"] == 0

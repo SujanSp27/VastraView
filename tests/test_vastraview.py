@@ -19,6 +19,7 @@ from backend.app import main, private_data, wardrobe
 from backend.app.accounts import lifecycle
 from backend.app.accounts.security import ACCESS_COOKIE, digest, now, signing_key
 from backend.app.anthropometry.repository import MeasurementRepository, get_repository
+from backend.app.catalog import BRANDS, slug
 from backend.app.config import settings
 from backend.app.db import Base, get_db
 from backend.app.jobs import TryOnJobs
@@ -84,12 +85,19 @@ def test_catalog_filters_actual_assets_and_idempotent_favorites(studio):
     (owner, stranger, _), db, *_ = studio
     assert register(owner).status_code == 201
     brands = owner.get("/api/v1/brands").json()
-    assert len(brands) == 28 and all(not b["partnership"] for b in brands)
-    page = owner.get("/api/v1/products?q=navy&sort=relevance&limit=2").json()
-    assert len(page["items"]) == 2 and all("navy" in p["name"].lower() for p in page["items"])
+    assert {b["id"] for b in brands} == {slug(name) for name in BRANDS}
+    assert all(not b["partnership"] for b in brands)
+    page = owner.get("/api/v1/products?q=shirt&sort=relevance&limit=2").json()
+    assert len(page["items"]) == 2 and page["total"] > 2
+    assert all("shirt" in p["name"].lower() for p in page["items"])
     item = page["items"][0]
     assert owner.get(item["imageUrl"]).headers["content-type"].startswith("image/")
     assert owner.get("/api/v1/products?brand_id=nike").json()["total"] == 0
+    # Unsupported coverage is an isolated fixture, not dependent on which
+    # editorial photographs happen to be in today's production collection.
+    fixture = db.products.find_one({"_id": item["id"]})
+    fixture.update(_id="unsupported-saree-fixture", category=None, subcategory="saree")
+    db.products.insert_one(fixture)
     sarees = owner.get("/api/v1/products?subcategory=saree").json()
     assert sarees["total"] == 1 and not sarees["items"][0]["tryon_supported"]
     assert owner.get("/api/v1/products?limit=1000").status_code == 422
@@ -109,7 +117,9 @@ def test_production_hides_unlicensed_catalog(studio, monkeypatch):
     assert client.get("/api/v1/products").json()["total"] > 0
     monkeypatch.setattr(settings, "environment", "production")
     published = client.get("/api/v1/products").json()
-    assert published["total"] == 51 and all(p["commercial_use"] for p in published["items"])
+    expected = studio[1].products.count_documents({"active": True, "commercial_use": True})
+    assert published["total"] == expected and expected > 0
+    assert all(p["commercial_use"] for p in published["items"])
     assert client.get("/api/v1/products/navy-tee/image").status_code == 404
 
 

@@ -41,7 +41,7 @@ def test_output_validation_requires_changed_pixels_and_matching_frame():
 
 
 def test_source_audit_uses_actual_decoder_and_supported_category():
-    row = next(r for r in catalog_rows() if r.get("commercial_use") and r.get("category"))
+    row = next(r for r in catalog_rows() if r.get("commercial_use") and r.get("category") == "t-shirt")
     report = inspect_source(row)
     assert report["validImage"] and report["modelCategory"] == "tops"
     assert report["inferenceStatus"] == "not_tested"
@@ -71,11 +71,12 @@ def test_missing_inference_cannot_be_approved_or_published(tmp_path):
 
 
 def test_failed_api_job_keeps_structured_error_readable_in_report(tmp_path):
-    case = tmp_path / "cases/edit-a59f077d/studio"
+    product_id = "hm-polo-t-shirt-1"
+    case = tmp_path / "cases" / product_id / "studio"
     save(case / "trial.json", {"status": "failed", "jobId": "saved-failure",
         "error": {"code": "online_gpu_connection", "message": "The GPU connection expired."}})
     report = curate.report(tmp_path)
-    entry = next(row for row in report["garments"] if row["id"] == "edit-a59f077d")
+    entry = next(row for row in report["garments"] if row["id"] == product_id)
     assert entry["trials"]["studio"]["reasons"] == ["The GPU connection expired."]
     assert "The GPU connection expired." in (tmp_path / "report.md").read_text(encoding="utf-8")
 
@@ -120,7 +121,7 @@ def test_catalog_preserved_before_verified_publication(studio):
     quality = client.get("/api/v1/catalog/quality").json()
     assert quality["approvedCount"] == 0 and not quality["enforced"]
     result = client.get("/api/v1/products?limit=48").json()
-    assert result["total"] == 57
+    assert result["total"] == studio[1].products.count_documents({"active": True}) == 92
     assert all(p["qualityReview"]["status"] != "approved" for p in result["items"])
 
 
@@ -128,8 +129,8 @@ def test_catalog_payload_rejects_changed_image_category_and_unsupported(studio, 
     (client, *_), db, *_ = studio
     register(client)
     client.get("/api/v1/products")
-    row = db.products.find_one({"commercial_use": True, "category": {"$ne": None}})
-    actual = (ROOT / "data/raw" / row["filename"]).read_bytes()
+    row = db.products.find_one({"_id": "hm-polo-t-shirt-1"})
+    actual = catalog.image_path(row).read_bytes()
     wardrobe.validate_catalog_submission(db, row["_id"], actual, "t-shirt", "flat-lay")
     for image, category, photo in ((b"different", "t-shirt", "flat-lay"), (actual, "dress", "flat-lay"), (actual, "t-shirt", "model")):
         with pytest.raises(PipelineError, match="changed"):
@@ -159,13 +160,13 @@ def test_published_catalog_filters_favorites_and_invalidated_sources(studio, mon
     client, db = studio[0][0], studio[1]
     register(client)
     client.get("/api/v1/products")
-    ids = ["edit-a59f077d", "edit-1b2a7169"]
+    ids = ["hm-polo-t-shirt-1", "hm-round-neck-t-shirt"]
     for product_id in ids:
         assert client.put(f"/api/v1/favorites/{product_id}").status_code == 204
     records = []
     for row in db.products.find({"_id": {"$in": ids}}):
         records.append({"id": row["_id"], "category": row["category"], "photoType": row["photoType"],
-                        "imageSha256": digest((ROOT / "data/raw" / row["filename"]).read_bytes()),
+                        "imageSha256": digest(catalog.image_path(row).read_bytes()),
                         "testedPeople": ["studio", "mirror"], "maximumSeconds": 25})
     published = {"enforced": True, "garments": records}
     monkeypatch.setattr(wardrobe, "policy", lambda: published)
@@ -188,7 +189,7 @@ def test_catalog_collar_correction_is_repeatable_and_preserves_operator_edits(st
     client.get("/api/v1/products")
     key = "edit-4758e641"
     db.catalog_versions.delete_one({"_id": 3})
-    db.products.update_one({"_id": key}, {"$set": {"name": "Olive mandarin-collar shirt", "description": "Operator description"}})
+    db.products.insert_one({"_id": key, "name": "Olive mandarin-collar shirt", "description": "Operator description"})
     catalog.catalog_db(db)
     row = db.products.find_one({"_id": key})
     assert row["name"] == "Olive short-sleeve shirt" and row["description"] == "Operator description"

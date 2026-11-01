@@ -1,23 +1,15 @@
-"""Automated Garment Evaluation System for VastraView Virtual Try-On.
+"""Real Colab evaluation with basic image diagnostics, never automatic approval.
 
-Performs objective image quality and preservation evaluation across multiple subjects
-(male and female) and garment categories (shirts, T-shirts, polos, trousers, jeans, dresses).
-
-Evaluates:
-  1. Garment Preservation (Color consistency, texture edge fidelity, silhouette).
-  2. Identity & Unaffected Region Preservation (Face, hair, hands, feet/shoes, background).
-  3. Mask Leakage & Boundary Integrity (Protected region alteration must be zero).
-  4. Natural Fitting & Anatomy (Torso alignment, shoulder edge, seam transitions).
-  5. Latency & Resource Utilization.
+Colour histograms and edge density do not establish garment identity, correct
+anatomy, or mask preservation. Use evaluate_wardrobe for resumable authenticated
+jobs, retrieved semantic masks and explicit visual review. Offline trials remain
+blocked and never produce a substitute photograph or a synthetic quality score.
 """
 from __future__ import annotations
 
-import argparse
-import base64
-import hashlib
 import io
 import json
-import os
+import re
 import sys
 import time
 from datetime import datetime, timezone
@@ -33,9 +25,7 @@ sys.path.insert(0, str(ROOT))
 
 from backend.app.config import ROOT as APP_ROOT
 from backend.app.online_vton import OnlineTryOn, normalized_image
-from ml.errors import PipelineError
 from ml.vton.categories import MODEL_CATEGORIES
-from ml.vton.online_composite import preserve_regions
 
 OUTPUT_DIR = APP_ROOT / "experiments/garment-evaluation"
 
@@ -106,7 +96,14 @@ def evaluate_trial(trial_name: str, person_path: Path, garment_path: Path,
                    category: str, photo_type: str = "flat-lay",
                    worker: OnlineTryOn | None = None) -> dict:
     """Run try-on for a person/garment pair and compute comprehensive evaluation metrics."""
+    if not re.fullmatch(r"[a-zA-Z0-9][a-zA-Z0-9_-]{0,159}", trial_name):
+        raise ValueError("Invalid trial name")
+    if category not in MODEL_CATEGORIES or photo_type not in {"model", "flat-lay"}:
+        raise ValueError("Unsupported garment category or photo type")
     trial_folder = OUTPUT_DIR / trial_name
+    if trial_folder.exists() and any(trial_folder.iterdir()):
+        # Preserve old evidence (including invalid historical simulations).
+        trial_folder = OUTPUT_DIR / f"{trial_name}-{uuid4().hex[:12]}"
     trial_folder.mkdir(parents=True, exist_ok=True)
     
     person_bytes = person_path.read_bytes()
@@ -145,11 +142,8 @@ def evaluate_trial(trial_name: str, person_path: Path, garment_path: Path,
             status = "failed"
             error_msg = str(exc)
     else:
-        status = "offline_simulated"
-        error_msg = "GPU worker offline; running deterministic local baseline verification"
-        # Simulated run: identical framing baseline for pipeline tests
-        output_img_np = person_np.copy()
-        (trial_folder / "tryon-2d.png").write_bytes(person_norm)
+        status = "blocked"
+        error_msg = "GPU worker unavailable; no inference or substitute result was generated."
         
     duration = time.perf_counter() - start_time
     
@@ -162,7 +156,15 @@ def evaluate_trial(trial_name: str, person_path: Path, garment_path: Path,
         "garmentImage": str(garment_path.resolve().relative_to(APP_ROOT.resolve())),
         "garmentCategory": category,
         "photoType": photo_type,
+        "outputDirectory": str(trial_folder.resolve()),
+        "visualApproval": "not_reviewed",
+        "diagnostics": diagnostics,
+        "limitations": "Whole-image colour and edge statistics are diagnostics, not fit or preservation accuracy.",
     }
+
+    if output_img_np is not None and person_np.shape != output_img_np.shape:
+        metrics.update(status="failed", error="Generated dimensions do not match the person image.", dimensionMatch=False)
+        output_img_np = None
     
     if output_img_np is not None:
         # 1. Identity & Unaffected Background exactness
@@ -180,7 +182,7 @@ def evaluate_trial(trial_name: str, person_path: Path, garment_path: Path,
         # 3. Create side-by-side comparison image
         side_by_side = create_side_by_side(person_np, output_img_np, garment_np)
         side_by_side.save(trial_folder / "comparison-board.jpg", quality=92)
-        metrics["comparisonBoardUrl"] = f"/experiments/garment-evaluation/{trial_name}/comparison-board.jpg"
+        metrics["comparisonBoardPath"] = str((trial_folder / "comparison-board.jpg").resolve())
         
         # 4. Color & Texture consistency between garment and changed region
         changed_mask = diff.max(axis=2) > 4
@@ -195,9 +197,8 @@ def evaluate_trial(trial_name: str, person_path: Path, garment_path: Path,
             metrics["garmentEdgeSimilarity"] = round(edge_sim, 3)
             metrics["preservationScore"] = round((color_corr * 0.6 + edge_sim * 0.4) * 100, 1)
         else:
-            metrics["garmentColorCorrelation"] = 1.0 if status == "offline_simulated" else 0.0
-            metrics["garmentEdgeSimilarity"] = 1.0 if status == "offline_simulated" else 0.0
-            metrics["preservationScore"] = 100.0 if status == "offline_simulated" else 0.0
+            metrics.update(status="failed", error="The output contains no detectable garment transfer.",
+                           garmentColorCorrelation=0., garmentEdgeSimilarity=0., preservationScore=0.)
             
     # Save individual trial metadata
     (trial_folder / "evaluation-result.json").write_text(json.dumps(metrics, indent=2))
@@ -208,42 +209,21 @@ def run_full_evaluation_suite() -> dict:
     """Run comprehensive automated garment evaluation across diverse test matrices."""
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     
-    # 1. Define Test Matrix across Subjects and Categories
-    # Multiple body types & male/female subjects
+    # Neutral fixture IDs describe image provenance, not inferred gender.
     subjects = [
-        {"id": "female-studio", "path": APP_ROOT / "data/raw/studio-person.jpg", "gender": "female"},
-        {"id": "female-sample", "path": APP_ROOT / "data/raw/fashn-samples/person5.png", "gender": "female"},
-        {"id": "male-sample", "path": APP_ROOT / "data/raw/fashn-samples/person1.png", "gender": "male"},
+        {"id": "studio", "path": APP_ROOT / "data/raw/studio-person.jpg"},
+        {"id": "sample-5", "path": APP_ROOT / "data/raw/fashn-samples/person5.png"},
+        {"id": "sample-1", "path": APP_ROOT / "data/raw/fashn-samples/person1.png"},
     ]
-    
-    # Representative garments covering all required categories
+    from scripts.evaluate_wardrobe import catalog_rows, reference_path
     garment_matrix = [
-        # Shirts
-        {"name": "HM-Half-Sleeve-Shirt", "path": APP_ROOT / "assets/garments/half-hand-shirt1_hm.jpg",
-         "category": "shirt", "photoType": "flat-lay", "expectedType": "tops"},
-        {"name": "HM-Oversized-Shirt", "path": APP_ROOT / "assets/garments/oversized-shirt_hm.jpg",
-         "category": "shirt", "photoType": "flat-lay", "expectedType": "tops"},
-        # T-Shirts
-        {"name": "HM-Full-Sleeve-Tee", "path": APP_ROOT / "assets/garments/full-hand-t-shirt_hm.jpg",
-         "category": "t-shirt", "photoType": "flat-lay", "expectedType": "tops"},
-        {"name": "HM-Round-Neck-Tee", "path": APP_ROOT / "assets/garments/round-neck-t-shirt_hm.jpg",
-         "category": "t-shirt", "photoType": "flat-lay", "expectedType": "tops"},
-        # Polos
-        {"name": "HM-Polo-Tee", "path": APP_ROOT / "assets/garments/polo-t-shirt1_hm.jpg",
-         "category": "polo", "photoType": "flat-lay", "expectedType": "tops"},
-        # Trousers
-        {"name": "HM-Formal-Pant-1", "path": APP_ROOT / "assets/garments/formal-pant1_hm.jpg",
-         "category": "trouser", "photoType": "flat-lay", "expectedType": "bottoms"},
-        # Jeans
-        {"name": "HM-Baggy-Jeans", "path": APP_ROOT / "assets/garments/baggy-jeans1_hm.jpg",
-         "category": "jeans", "photoType": "flat-lay", "expectedType": "bottoms"},
-        # Dresses
-        {"name": "Coral-Ruched-Dress", "path": APP_ROOT / "data/raw/fashn-samples/garment1.jpeg",
-         "category": "dress", "photoType": "model", "expectedType": "one-pieces"},
+        {"name": row["id"], "path": reference_path(row), "category": row["category"],
+         "photoType": row["photoType"], "expectedType": MODEL_CATEGORIES[row["category"]]}
+        for row in catalog_rows() if row["category"] in MODEL_CATEGORIES
     ]
-    
+
     worker = OnlineTryOn()
-    avail = worker.availability()
+    avail = worker.availability(check_connection=True)
     print(f"Starting Automated Garment Evaluation (GPU Worker Available: {avail.get('available')})...")
     
     results = []
@@ -266,25 +246,26 @@ def run_full_evaluation_suite() -> dict:
                 worker=worker,
             )
             res["subjectId"] = subject["id"]
-            res["subjectGender"] = subject["gender"]
             res["garmentName"] = garment["name"]
             results.append(res)
             
     # 2. Compile Aggregated Evaluation Report
     total_trials = len(results)
-    completed_trials = sum(1 for r in results if r["status"] in {"completed", "offline_simulated"})
+    completed_trials = sum(1 for r in results if r["status"] == "completed")
     failed_trials = sum(1 for r in results if r["status"] == "failed")
     
-    avg_preservation = float(np.mean([r["preservationScore"] for r in results])) if results else 0.0
-    avg_timing = float(np.mean([r["timingSeconds"] for r in results])) if results else 0.0
+    completed = [r for r in results if r["status"] == "completed"]
+    avg_preservation = float(np.mean([r["preservationScore"] for r in completed])) if completed else None
+    avg_timing = float(np.mean([r["timingSeconds"] for r in completed])) if completed else None
     
     summary = {
         "generatedAt": datetime.now(timezone.utc).isoformat(),
         "totalEvaluations": total_trials,
         "successfulEvaluations": completed_trials,
         "failedEvaluations": failed_trials,
-        "meanPreservationScore": round(avg_preservation, 1),
-        "meanInferenceSeconds": round(avg_timing, 2),
+        "blockedEvaluations": sum(r["status"] == "blocked" for r in results),
+        "meanPreservationScore": round(avg_preservation, 1) if avg_preservation is not None else None,
+        "meanEndToEndSeconds": round(avg_timing, 2) if avg_timing is not None else None,
         "gpuWorkerAvailable": avail.get("available"),
         "testedCategories": list({g["category"] for g in garment_matrix}),
         "testedSubjects": [s["id"] for s in subjects if s["path"].is_file()],

@@ -100,13 +100,11 @@ def _align_shoulder_edge(generated, source, target, clothing, feather):
 
 
 def _revealed_region_transitions(alpha, old, source, target, category):
-    """Blend newly exposed material into the same material in the source.
+    """Blend newly exposed background into adjacent agreeing background.
 
-    A lower neckline or shorter hem exposes pixels that did not exist in the
-    source photo. Keeping the source up to its old clothing edge creates a skin
-    or denim stripe even when the raw neural output is continuous. Extend only
-    those seams into an adjacent, agreeing semantic region, with a smooth fade.
-    Never blend through clothing, a disconnected region, the face or hands.
+    Existing skin and non-target clothing retain their actual pixels. Semantic
+    agreement alone is not evidence that generated skin or fabric has the same
+    colour. Never blend through a disconnected region, the face or hands.
     """
     rows = np.nonzero(old)[0]
     radius = min(max(4, round(min(source.shape) * .04)),
@@ -118,7 +116,7 @@ def _revealed_region_transitions(alpha, old, source, target, category):
     # Semantic agreement does not imply colour/texture agreement. Blending a
     # generated trouser label into real jeans recolours the non-target garment.
     # Only newly covered clothing in _top_hem_extension may edit a waistband.
-    labels = (0, 12, 14, 16)
+    labels = (0,)
     adjusted = np.zeros_like(old)
     for label in labels:
         revealed = old & (target == label)
@@ -218,6 +216,14 @@ def preserve_regions(original, generated, source, target, category, *, reference
         raise PipelineError("face_not_visible", "Use a clear photo with the person's face and hair visible.")
     if np.count_nonzero(old) < source.size * .003 or np.count_nonzero(new) < source.size * .003:
         raise PipelineError("clothing_not_visible", "The selected clothing region is not clearly visible in the input or generated image.")
+    # A lower-body replacement must not introduce a second shirt hem inside
+    # the old trousers. Preserving the real shirt cannot repair this invented
+    # extension: the two hems produce a visible seam/double layer.
+    retained_top = old & (target == 3) if category == "bottoms" else np.zeros_like(old)
+    if np.count_nonzero(retained_top) > max(16, round(np.count_nonzero(old) * .005)):
+        raise PipelineError("non_target_garment_changed",
+                            "The generated lower garment introduced an extra upper-body clothing layer. "
+                            "This result was rejected; try a photo with a clearly visible waistband.")
     # Hidden anatomy is estimated, never recovered from the photograph. A
     # validated cropped reference can reveal a bounded midriff, but cannot
     # waive the limit for arms, legs or a radically different silhouette.
@@ -263,6 +269,11 @@ def preserve_regions(original, generated, source, target, category, *, reference
     edge = cv2.dilate(support.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (feather * 2 + 1,) * 2)).astype(bool)
     support |= edge & eligible & (distance <= feather)
     protected = head | np.isin(source, (13, 15, 8, 17))
+    # Keep already visible skin unless the new garment actually covers it.
+    # Fading model skin into a real forearm creates a colour seam at protected
+    # hands (reproduced with the mirror-person polo baseline).
+    visible_skin = np.isin(source, (12, 14, 16)) & ~new
+    protected |= visible_skin
     # Shrinking a real limb is not fixed by deleting skin or accepting a white gap.
     skin = np.isin(source, (12, 14))
     interior = cv2.distanceTransform(skin.astype(np.uint8), cv2.DIST_L2, 5) > feather * 2
@@ -281,6 +292,7 @@ def preserve_regions(original, generated, source, target, category, *, reference
     return output, alpha, {
         "identityPreservedExactly": bool(np.array_equal(output[protected], original[protected])),
         "nonTargetClothingPreservedExactly": bool(np.array_equal(output[non_target], original[non_target])),
+        "visibleSkinPreservedExactly": bool(np.array_equal(output[visible_skin], original[visible_skin])),
         "garmentKind": garment_kind,
         "dressSeparateClothingPixels": dress_leakage,
         "changedNonTargetClothingPixels": int(np.count_nonzero(np.any(output != original, axis=2) & non_target)),
@@ -293,6 +305,6 @@ def preserve_regions(original, generated, source, target, category, *, reference
         "revealedRegionTransitionPixels": int(np.count_nonzero(transitions & ~protected)),
         "referenceCropHemPixels": int(np.count_nonzero(crop_hem)),
         "estimatedPreviouslyHiddenSkinPixels": int(np.count_nonzero(revealed_skin & ~protected)),
-        "compositor": "semantic-category-preservation-v10",
+        "compositor": "semantic-category-preservation-v11",
         "limitations": "Semantic parsing can mislabel seams and skin. Newly exposed skin is generated, not observed anatomy. Visual review is still required.",
     }

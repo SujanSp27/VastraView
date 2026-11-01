@@ -81,6 +81,10 @@ TAXONOMY = [
 
 
 def slug(name):
+    # Match the existing product foreign key, rather than seed an unused second
+    # brand under marks-spencer alongside marks-and-spencer.
+    if name.casefold() == "marks & spencer":
+        return "marks-and-spencer"
     return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
 
 
