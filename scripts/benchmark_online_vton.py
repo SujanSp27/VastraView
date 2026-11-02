@@ -15,6 +15,18 @@ from ml.vton.categories import MODEL_CATEGORIES
 from scripts.worker_audits import retrieve_http
 
 
+def render_trial(worker, person, garment, category, photo_type, output):
+    """Discover the live worker's category contract, as the app preflight does.
+
+    A configuration-only check omits garmentKind on a new CLI process and can
+    bypass the dress-specific preservation gate. Do not benchmark that path.
+    """
+    availability = worker.availability(check_connection=True)
+    if not availability["available"]:
+        raise PipelineError("online_gpu_unavailable", availability["reason"], 503)
+    return worker.render(person, garment, category, photo_type, output)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--person", type=Path, default=ROOT / "data/raw/studio-person.jpg")
@@ -34,7 +46,8 @@ def main():
     settings.online_vton_timeout = 600
     start = time.perf_counter()
     try:
-        diagnostics = OnlineTryOn().render(args.person.read_bytes(), args.garment.read_bytes(), args.category, args.photo_type, args.output)
+        diagnostics = render_trial(OnlineTryOn(), args.person.read_bytes(), args.garment.read_bytes(),
+                                   args.category, args.photo_type, args.output)
         report = {"status": "generated", "diagnostics": diagnostics, "freshGeneration": True,
                   "visualAcceptance": "pending inspection"}
     except PipelineError as exc:

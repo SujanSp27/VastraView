@@ -50,13 +50,44 @@ def test_export_requires_completed_run_and_exact_saved_input_hashes(completed):
 def test_export_returns_only_allowlisted_bounded_files_with_hashes(completed, monkeypatch):
     root, case = completed
     payload = response(root)
-    assert set(payload["files"]) == set(export.ARTIFACT_NAMES)
+    assert payload["protocol"] == 2
+    assert set(payload["files"]) == set(export.ARTIFACT_NAMES + export.ALIGNMENT_ARTIFACT_NAMES)
     assert payload["files"]["edit-mask.png"] is None
     decoded, error = client.validate_export(payload, RUN, PERSON, GARMENT)
     assert error is None
     assert decoded["raw.png"] == (case / "raw.png").read_bytes()
     monkeypatch.setattr(export, "MAX_FILE_BYTES", 4)
     assert response(root)["error"] == "audit_size_limit"
+
+
+def test_alignment_export_includes_exact_final_and_pose_without_unrelated_files(completed):
+    root, case = completed
+    for name in export.ALIGNMENT_ARTIFACT_NAMES:
+        (case / name).write_bytes(("saved " + name).encode())
+    decoded, error = client.validate_export(response(root), RUN, PERSON, GARMENT)
+    assert error is None
+    for name in export.ALIGNMENT_ARTIFACT_NAMES:
+        assert decoded[name] == (case / name).read_bytes()
+    assert "private-token.txt" not in decoded
+
+
+def test_old_worker_exports_remain_readable_without_claiming_missing_alignment_evidence(completed):
+    root, _ = completed
+    payload = response(root)
+    payload["protocol"] = 1
+    for name in export.ALIGNMENT_ARTIFACT_NAMES:
+        del payload["files"][name]
+    decoded, error = client.validate_export(payload, RUN, PERSON, GARMENT)
+    assert error is None and "result.png" not in decoded
+
+
+@pytest.mark.parametrize("protocol", [True, 0, 3, "2"])
+def test_invalid_audit_protocol_cannot_bypass_file_allowlist(completed, protocol):
+    root, _ = completed
+    payload = response(root)
+    payload["protocol"] = protocol
+    with pytest.raises(ValueError, match="does not match"):
+        client.validate_export(payload, RUN, PERSON, GARMENT)
 
 
 @pytest.mark.parametrize("corruption", ["hash", "bytes", "run", "filename", "base64"])

@@ -3,6 +3,15 @@ $projectRoot = Split-Path $PSScriptRoot -Parent
 Set-Location $projectRoot
 $server = Join-Path $projectRoot '.runtime/pgsql/bin/pg_ctl.exe'
 if (-not (Test-Path -LiteralPath $server)) { throw 'Run scripts/download_postgres.py first.' }
+$pidFile = Join-Path $projectRoot '.runtime/pgdata/postmaster.pid'
+if (Test-Path -LiteralPath $pidFile) {
+    try {
+        $stalePid = [int]((Get-Content -LiteralPath $pidFile)[0].Trim())
+        if (-not (Get-Process -Id $stalePid -ErrorAction SilentlyContinue)) {
+            Remove-Item -LiteralPath $pidFile -Force -ErrorAction SilentlyContinue
+        }
+    } catch { }
+}
 & $server -D .runtime/pgdata status 2>$null
 if ($LASTEXITCODE -ne 0) {
     $process = Start-Process -FilePath $server -ArgumentList '-D .runtime/pgdata -l .runtime/postgres.log -o "-p 5433 -h 127.0.0.1" start -w' -WindowStyle Hidden -PassThru

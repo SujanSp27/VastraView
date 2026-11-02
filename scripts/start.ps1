@@ -1,4 +1,4 @@
-param([switch]$SkipDatabase)
+param([switch]$SkipDatabase, [switch]$Wait)
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot -Parent
 Set-Location $projectRoot
@@ -31,3 +31,6 @@ for ($attempt=0; $attempt -lt 40; $attempt++) {
 }
 if (-not $ready) { throw 'App did not become ready. Inspect .runtime/backend-error.log and frontend-error.log.' }
 Write-Output 'Frontend: http://127.0.0.1:5173 | API: http://127.0.0.1:8000/docs'
+if ($Wait) {
+    Wait-Process -Id $api.Id, $web.Id
+}

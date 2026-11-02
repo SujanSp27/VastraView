@@ -7,7 +7,13 @@ from urllib.parse import urlparse
 
 import httpx
 
-from ml.vton.audit_export import ARTIFACT_NAMES, MAX_FILE_BYTES, MAX_TOTAL_BYTES, RUN_ID
+from ml.vton.audit_export import (
+    ALIGNMENT_ARTIFACT_NAMES,
+    ARTIFACT_NAMES,
+    MAX_FILE_BYTES,
+    MAX_TOTAL_BYTES,
+    RUN_ID,
+)
 
 MAX_RESPONSE_BYTES = 24 * 1024 * 1024
 
@@ -18,9 +24,11 @@ def validate_export(payload, run_id, person_hash, garment_hash):
         raise ValueError("Invalid worker audit response")
     if payload.get("error"):
         return None, str(payload["error"])[:80]
-    if (payload.get("protocol") != 1 or payload.get("runId") != run_id
+    protocol = payload.get("protocol")
+    expected_files = set(ARTIFACT_NAMES + (ALIGNMENT_ARTIFACT_NAMES if protocol == 2 else ()))
+    if (type(protocol) is not int or protocol not in (1, 2) or payload.get("runId") != run_id
             or payload.get("personSha256") != person_hash or payload.get("garmentSha256") != garment_hash
-            or not isinstance(payload.get("files"), dict) or set(payload["files"]) != set(ARTIFACT_NAMES)):
+            or not isinstance(payload.get("files"), dict) or set(payload["files"]) != expected_files):
         raise ValueError("Worker audit does not match this saved trial")
     files, total = {}, 0
     for name, record in payload["files"].items():

@@ -12,6 +12,7 @@ ARTIFACT_NAMES = (
     "person-conditioning.png", "reference-preparation.json", "inputs.json", "fidelity.json",
     "report.json", "failure.json", "garment-prepared.png",
 )
+ALIGNMENT_ARTIFACT_NAMES = ("result.png", "person-pose.png", "garment-pose.png")
 MAX_FILE_BYTES = 8 * 1024 * 1024
 MAX_TOTAL_BYTES = 16 * 1024 * 1024
 RUN_ID = re.compile(r"[0-9]{10,24}")
@@ -44,7 +45,7 @@ def export_audit(root: Path, token, supplied_token, run_id, person_hash, garment
         if not any((case / name).is_file() for name in ("report.json", "failure.json")):
             return {"error": "audit_not_complete"}
         files, total = {}, 0
-        for name in ARTIFACT_NAMES:
+        for name in ARTIFACT_NAMES + ALIGNMENT_ARTIFACT_NAMES:
             path = case / name
             if path.is_symlink() or path.resolve().parent != case.resolve():
                 return {"error": "invalid_audit_file"}
@@ -61,7 +62,7 @@ def export_audit(root: Path, token, supplied_token, run_id, person_hash, garment
                 return {"error": "audit_size_limit"}
             files[name] = {"bytes": size, "sha256": hashlib.sha256(data).hexdigest(),
                            "base64": base64.b64encode(data).decode("ascii")}
-        return {"protocol": 1, "runId": run_id, "personSha256": person_hash,
+        return {"protocol": 2, "runId": run_id, "personSha256": person_hash,
                 "garmentSha256": garment_hash, "files": files}
     except (OSError, ValueError, TypeError, AttributeError):
         return {"error": "audit_unavailable"}
