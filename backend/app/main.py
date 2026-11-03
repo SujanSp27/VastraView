@@ -4,11 +4,10 @@ from contextlib import asynccontextmanager
 from threading import BoundedSemaphore
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel
-
 from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, Query, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
+from pydantic import BaseModel
 from pymongo.errors import PyMongoError
 from sqlalchemy import func, select, text
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
@@ -277,7 +276,8 @@ class ColabConnectPayload(BaseModel):
 
 @app.post("/api/tryon/connect", status_code=200)
 def connect_tryon(payload: ColabConnectPayload):
-    import json, re
+    import json
+    import re
     raw = payload.connection.strip()
     url, token = None, None
     try:
@@ -448,6 +448,59 @@ def tryon(
 @app.get("/api/tryon/jobs/{job_id}")
 def job_status(job_id: UUID, owner=Depends(principal)):
     return jobs.get(job_id, owner=owner)
+
+
+@app.post("/api/tryon/outfit", status_code=202)
+def outfit_tryon(
+    request: Request,
+    personImage: UploadFile = File(),
+    garmentImage: UploadFile = File(),
+    bottomwearImage: UploadFile = File(),
+    garmentCategory: GarmentCategory = Form(),
+    bottomwearCategory: GarmentCategory = Form(),
+    garmentPhotoType: str = Form("flat-lay", pattern="^(flat-lay|model)$"),
+    bottomwearPhotoType: str = Form("flat-lay", pattern="^(flat-lay|model)$"),
+    productId: str | None = Form(None, pattern="^[a-z0-9][a-z0-9-]{1,79}$"),
+    bottomwearProductId: str | None = Form(None, pattern="^[a-z0-9][a-z0-9-]{1,79}$"),
+    topwearRunId: UUID | None = Form(None),
+    idempotency_key: str | None = Header(None),
+    owner: str = Depends(authenticated_owner),
+    accounts=Depends(account_db),
+    db: Session = Depends(get_db),
+):
+    import hashlib
+
+    from backend.app.outfits import reusable_top, run_outfit, validate_outfit
+    from backend.app.wardrobe import validate_catalog_submission
+
+    throttle(accounts, request, "tryon", owner, maximum=200 if settings.environment == "development" else 20)
+    validate_outfit(garmentCategory.value, bottomwearCategory.value)
+    person, top, bottom = (upload_bytes(upload) for upload in (personImage, garmentImage, bottomwearImage))
+    for product_id, data, category, photo in (
+        (productId, top, garmentCategory.value, garmentPhotoType),
+        (bottomwearProductId, bottom, bottomwearCategory.value, bottomwearPhotoType),
+    ):
+        if product_id:
+            validate_catalog_submission(accounts, product_id, data, category, photo)
+    options = dict(top_category=garmentCategory.value, bottom_category=bottomwearCategory.value,
+                   top_photo_type=garmentPhotoType, bottom_photo_type=bottomwearPhotoType,
+                   owner=owner, top_run_id=str(topwearRunId) if topwearRunId else None)
+
+    def preflight():
+        for data in (person, top, bottom):
+            normalized_image(data)
+        if topwearRunId:
+            reusable_top(db, pipeline, str(topwearRunId), owner, person, top, garmentCategory.value, garmentPhotoType)
+        require_tryon_ready()
+
+    def work():
+        with SessionLocal() as worker_db:
+            return run_outfit(pipeline, worker_db, person, top, bottom, **options)
+
+    parameters = {**options, "workflow": "outfit", "bottomwearSha256": hashlib.sha256(bottom).hexdigest(),
+                  "productId": productId, "bottomwearProductId": bottomwearProductId}
+    state = jobs.submit(person, top, parameters, work, idempotency_key, preflight=preflight)
+    return JSONResponse(status_code=202, content=state, headers={"Location": state["statusUrl"]})
 
 
 @app.get("/api/runs", response_model=RunPage, dependencies=[Depends(admin)])

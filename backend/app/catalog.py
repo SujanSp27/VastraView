@@ -321,6 +321,7 @@ def public_product(row, db):
     return {
         **{k: v for k, v in row.items() if k not in {"_id", "filename", "display_image"}},
         "id": row["_id"],
+        "garment_type": {"tops": "topwear", "bottoms": "bottomwear", "one-pieces": "one-piece"}.get(MODEL_CATEGORIES.get(row.get("category"))),
         "brand_name": brand["name"] if brand else "Independent reference",
         "imageUrl": f"/api/v1/products/{row['_id']}/image",
         "referenceImageUrl": f"/api/v1/products/{row['_id']}/reference-image",
@@ -336,6 +337,7 @@ def products(
     q: str = Query("", max_length=100),
     category: str | None = None,
     subcategory: str | None = None,
+    garment_type: Literal["topwear", "bottomwear", "one-piece"] | None = None,
     audience: Literal["men", "women", "unisex"] | None = None,
     brand_id: str | None = None,
     color: str | None = Query(None, max_length=40),
@@ -347,6 +349,9 @@ def products(
     db=Depends(catalog_db),
 ):
     query = visible_query(db)
+    if garment_type:
+        region = {"topwear": "tops", "bottomwear": "bottoms", "one-piece": "one-pieces"}[garment_type]
+        query.setdefault("$and", []).append({"category": {"$in": [key for key, value in MODEL_CATEGORIES.items() if value == region]}})
     for key, value in {
         "category": category,
         "subcategory": subcategory,

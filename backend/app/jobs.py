@@ -137,6 +137,8 @@ class TryOnJobs:
                     "code": getattr(exc, "code", "internal_error"),
                     "message": str(exc) if isinstance(exc, PipelineError) else "Try-on failed; inspect the server log.",
                 }}
+            if isinstance(exc, PipelineError) and getattr(exc, "partial_result", None):
+                outcome["partialResult"] = exc.partial_result
         finally:
             with self.lock:
                 # Readers cannot observe completion before capacity is released.

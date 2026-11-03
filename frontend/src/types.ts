@@ -27,6 +27,13 @@ export type Result = {
   provenance: { backend: string; execution?: string };
   warnings: string[];
   artifacts: Record<string, string>;
+  outfit?: {
+    strategy: "sequential-top-then-bottom";
+    topwear: Result;
+    bottomwearCategory: string;
+    topwearReused: boolean;
+    stageSeconds: { topwear: number; bottomwear: number };
+  };
 };
 export async function apiError(response: Response): Promise<string> {
   const data = await response.json().catch(() => null);

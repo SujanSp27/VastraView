@@ -16,18 +16,23 @@ export type Garment = {
     status: "approved" | "unreviewed" | "unsupported" | "stale";
     message: string;
   };
+  brand_name?: string;
+  garment_type?: "topwear" | "bottomwear" | "one-piece";
 };
 export default function GarmentPicker({
   disabled,
   selected,
   onSelect,
+  garmentType,
 }: {
   disabled: boolean;
   selected?: string;
   onSelect: (garment: Garment) => void;
+  garmentType?: "topwear" | "bottomwear";
 }) {
   const [items, setItems] = useState<Garment[]>([]);
   const [filter, setFilter] = useState("all");
+  const [search, setSearch] = useState("");
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [retry, setRetry] = useState(0);
@@ -37,15 +42,28 @@ export default function GarmentPicker({
     let active = true;
     setLoading(true);
     setError(false);
-    fetch("/api/v1/products?limit=48&sort=newest&tryon_supported=true", {
-      signal: controller.signal,
-    })
+    fetch(
+      "/api/v1/products?limit=48&sort=newest&tryon_supported=true" +
+        (garmentType ? `&garment_type=${garmentType}` : "") +
+        (search ? `&q=${encodeURIComponent(search)}` : ""),
+      {
+        signal: controller.signal,
+      },
+    )
       .then(async (r) => {
         if (!r.ok) throw new Error();
         const data = await r.json();
         if (active) {
           const apiItems: Garment[] = data.items || [];
-          setItems(apiItems);
+          const roles =
+            garmentType === "bottomwear"
+              ? ["jeans", "trouser", "shorts", "skirt"]
+              : ["t-shirt", "shirt", "blouse", "sweater", "jacket"];
+          setItems(
+            garmentType
+              ? apiItems.filter((item) => roles.includes(item.category))
+              : apiItems,
+          );
           setFilter((current) =>
             apiItems.some((item: Garment) => item.category === current)
               ? current
@@ -68,7 +86,7 @@ export default function GarmentPicker({
       clearTimeout(timer);
       controller.abort();
     };
-  }, [retry]);
+  }, [retry, garmentType, search]);
   const labels: Record<string, string> = {
     "t-shirt": "Tops & polos",
     blouse: "Blouses",
@@ -86,14 +104,22 @@ export default function GarmentPicker({
     <section className="card garment-catalog">
       <div className="section-heading">
         <div>
-          <h3>Discover another look</h3>
+          <h3>
+            {garmentType === "bottomwear"
+              ? "Complete your outfit"
+              : "Discover another look"}
+          </h3>
           <p className="muted">Select a real garment, or upload your own.</p>
           <Link className="text-button" to="/catalog">
             Browse the full collection
           </Link>
         </div>
         <select
-          aria-label="Filter garment catalog"
+          aria-label={
+            garmentType === "bottomwear"
+              ? "Filter bottomwear catalog"
+              : "Filter garment catalog"
+          }
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
         >
@@ -107,6 +133,14 @@ export default function GarmentPicker({
             ))}
         </select>
       </div>
+      <label className="field">
+        Search {garmentType ?? "garments"} by name or brand
+        <input
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </label>
       {loading && <p role="status">Loading the collection…</p>}
       {error && (
         <div role="alert">
@@ -142,6 +176,7 @@ export default function GarmentPicker({
                 </div>
                 <div className="catalog-copy">
                   <strong>{item.name}</strong>
+                  {item.brand_name && <span>{item.brand_name}</span>}
                   <span>{item.description}</span>
                   <small>
                     {(item.displayImage?.photoType ?? item.photoType) ===
