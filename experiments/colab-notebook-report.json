@@ -3,10 +3,10 @@
   "cloudExecution": "not performed by notebook builder",
   "visualAcceptance": "not evaluated by notebook builder",
   "notebook": "notebooks\\Virtual_TryOn_GPU.ipynb",
-  "notebookSha256": "f1ac16feb32f87abd92464c2551134ceb9af111ff2b40d4e0824fd47b087c0e1",
-  "notebookBytes": 1686219,
-  "sourceArchiveSha256": "3c31fab6fcf77a18df4ca4c5ada226933df3853bbad864623f151818443511cc",
-  "sourceArchiveBytes": 1251917,
+  "notebookSha256": "3d47f6750ec1b5b53a178aaf024aaa674a434fe039141cdce8a340684511eb0a",
+  "notebookBytes": 1686296,
+  "sourceArchiveSha256": "1e9b6adc74f5e7ec74e331cdc3507b7f69f5d755c117bbad4c7b42106dd80645",
+  "sourceArchiveBytes": 1251951,
   "checks": {
     "nbformat": "4.5",
     "codeCellsCompile": 6,
@@ -31,10 +31,6 @@
       "data/raw/garment-demo.png": {
         "sha256": "28b6ff594200c1264146b10fab679b4343ae0ee520083e5b3389816963e67535",
         "bytes": 4771
-      },
-      "data/raw/studio-person.jpg": {
-        "sha256": "1d450d545f08a2945217f76908d229c14381cd59bb3b8c936c1c0e1a938bad8f",
-        "bytes": 89704
       },
       "data/raw/vton-official/garment-number-95.jpg": {
         "sha256": "332036128caffe010e377f7ecb1852791804c53ebc4865d377339b9762c6689f",
@@ -183,6 +179,10 @@
       "scripts/download_vton_mix.py": {
         "sha256": "8c8ce18bd0b167758ded828ee55e033564dbff4bf79701b7b06177d3e5275a12",
         "bytes": 2519
+      },
+      "tests/fixtures/vton/studio-person.jpg": {
+        "sha256": "1d450d545f08a2945217f76908d229c14381cd59bb3b8c936c1c0e1a938bad8f",
+        "bytes": 89704
       }
     }
   }

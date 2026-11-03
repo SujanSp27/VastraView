@@ -56,6 +56,16 @@ def test_real_archive_is_reproducible_and_explicit():
             assert builder.sha256(archive.read(name)) == entry["sha256"]
 
 
+def test_archive_pins_research_person_independently_of_selectable_sample():
+    name = "tests/fixtures/vton/studio-person.jpg"
+    assert name in builder.SOURCE_FILES
+    assert "data/raw/studio-person.jpg" not in builder.SOURCE_FILES
+    assert builder.FIXTURE_SHA256[name] == "1d450d545f08a2945217f76908d229c14381cd59bb3b8c936c1c0e1a938bad8f"
+    source = "\n".join("".join(cell["source"]) for cell in builder.make_notebook(b"unused")["cells"])
+    assert source.count(name) == 3
+    assert "data/raw/studio-person.jpg" not in source
+
+
 def test_real_archive_extracts_and_checks_all_bytes(tmp_path):
     payload, manifest = builder.source_archive()
     destination = tmp_path / "isolated"

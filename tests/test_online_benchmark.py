@@ -19,9 +19,16 @@ def test_timing_excludes_artifact_retrieval_and_uses_strict_target(tmp_path, mon
     ticks = iter([100.0, 100.0 + elapsed])
     monkeypatch.setattr(benchmark.time, "perf_counter", lambda: next(ticks))
     calls = []
+    checks = []
 
     class Worker:
+        def availability(self, *, check_connection):
+            assert check_connection is True
+            checks.append(True)
+            return {"available": True, "reason": None}
+
         def render(self, supplied_person, supplied_garment, category, photo_type, destination):
+            assert checks == [True]
             calls.append((supplied_person, supplied_garment, category, photo_type))
             assert destination == output
             return {"steps": 20, "runPath": "/content/formfit-online/runs/1234567890"}
@@ -38,6 +45,7 @@ def test_timing_excludes_artifact_retrieval_and_uses_strict_target(tmp_path, mon
     benchmark.main()
     saved = json.loads((output / "benchmark.json").read_text())
     assert len(calls) == 1
+    assert checks == [True]
     assert saved["timingTargetMet"] is expected
     assert saved["status"] == "generated"
     assert saved["auditRetrieval"]["status"] == "unavailable"
@@ -56,9 +64,16 @@ def test_failed_generation_does_not_fetch_audits_or_repeat_inference(tmp_path, m
     for key in ("online_vton_steps", "online_vton_input_encoding", "online_vton_timeout"):
         monkeypatch.setattr(benchmark.settings, key, getattr(benchmark.settings, key))
     calls = []
+    checks = []
 
     class Worker:
+        def availability(self, *, check_connection):
+            assert check_connection is True
+            checks.append(True)
+            return {"available": True, "reason": None}
+
         def render(self, *args):
+            assert checks == [True]
             calls.append(True)
             raise PipelineError("online_gpu_connection", "Connection interrupted")
 
@@ -72,3 +87,4 @@ def test_failed_generation_does_not_fetch_audits_or_repeat_inference(tmp_path, m
     assert saved["timingTargetMet"] is False
     assert saved["inputs"]["steps"] == 20
     assert len(calls) == 1
+    assert checks == [True]

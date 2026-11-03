@@ -53,7 +53,7 @@ SOURCE_FILES = (
     "scripts/download_parser.py",
     "scripts/colab_runtime.py",
     "requirements-colab.txt",
-    "data/raw/studio-person.jpg",
+    "tests/fixtures/vton/studio-person.jpg",
     "data/raw/garment-demo.png",
     "data/raw/vton-official/person-model-5.png",
     "data/raw/vton-official/garment-number-95.jpg",
@@ -61,7 +61,7 @@ SOURCE_FILES = (
     "data/raw/vton-official/manifest.json",
 )
 FIXTURE_SHA256 = {
-    "data/raw/studio-person.jpg": "1d450d545f08a2945217f76908d229c14381cd59bb3b8c936c1c0e1a938bad8f",
+    "tests/fixtures/vton/studio-person.jpg": "1d450d545f08a2945217f76908d229c14381cd59bb3b8c936c1c0e1a938bad8f",
     "data/raw/garment-demo.png": "28b6ff594200c1264146b10fab679b4343ae0ee520083e5b3389816963e67535",
     "data/raw/vton-official/person-model-5.png": "5faaea84635da215bd0819cf5ce65512ca1b742c39ee8fd67176b19e084ed872",
     "data/raw/vton-official/garment-number-95.jpg": "332036128caffe010e377f7ecb1852791804c53ebc4865d377339b9762c6689f",
@@ -273,13 +273,13 @@ def make_notebook(payload: bytes) -> dict:
             RUNS = PROJECT / "experiments/colab-runs" / RUN_ID
             RUNS.mkdir(parents=True, exist_ok=True)
             CASES = [
-                ("reported-striped-shirt", "data/raw/studio-person.jpg",
+                ("reported-striped-shirt", "tests/fixtures/vton/studio-person.jpg",
                  "data/raw/garment-demo.png", "t-shirt"),
-                ("different-garment", "data/raw/studio-person.jpg",
+                ("different-garment", "tests/fixtures/vton/studio-person.jpg",
                  "data/raw/vton-official/garment-number-95.jpg", "t-shirt"),
                 ("different-person", "data/raw/vton-official/person-model-5.png",
                  "data/raw/vton-official/garment-rhude.jpg", "t-shirt"),
-                ("shirt-category", "data/raw/studio-person.jpg",
+                ("shirt-category", "tests/fixtures/vton/studio-person.jpg",
                  "data/raw/vton-official/garment-rhude.jpg", "shirt"),
             ]
             CASE_RECORDS = []
