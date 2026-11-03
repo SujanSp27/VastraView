@@ -35,19 +35,20 @@ def test_experiment_names_cannot_escape_private_directory(name):
         build_program(name)
 
 
-def test_foreground_comparison_restores_only_observed_background():
-    tree = ast.parse(build_program("foreground-test", "foreground", True))
+@pytest.mark.parametrize("mode,kept", [("foreground", [0]), ("preserve-bottoms", [0, 5, 6, 7])])
+def test_foreground_comparison_restores_only_specified_observed_regions(mode, kept):
+    tree = ast.parse(build_program("foreground-test", mode, True))
     function = next(n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef) and n.name == "foreground_condition")
     def contour_condition(*, img_np, **kwargs):
         img_np[:] = 127
         return img_np
-    scope = {"contour_condition": contour_condition}
+    scope = {"contour_condition": contour_condition, "np": np}
     exec(compile(ast.Module(body=[function], type_ignores=[]), "<wrapper>", "exec"), scope)
-    labels = np.array([[0, 3], [12, 6]], dtype=np.uint8)
-    image = np.full((2, 2, 3), 220, dtype=np.uint8)
+    labels = np.array([[0, 3, 5], [12, 6, 7]], dtype=np.uint8)
+    image = np.full((2, 3, 3), 220, dtype=np.uint8)
     result = scope["foreground_condition"](img_np=image.copy(), seg_pred=labels)
-    assert np.all(result[labels == 0] == 220)
-    assert np.all(result[labels != 0] == 127)
+    assert np.all(result[np.isin(labels, kept)] == 220)
+    assert np.all(result[~np.isin(labels, kept)] == 127)
     # The comparison changes only foreground restriction, not upstream mask size.
     assert "min_distance_threshold=0" in ast.unparse(tree)
     assert "mask_limbs=False" in ast.unparse(tree)
