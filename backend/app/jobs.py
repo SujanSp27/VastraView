@@ -123,6 +123,10 @@ class TryOnJobs:
     def _run(self, data, work):
         def update(progress):
             with self.lock:
+                progress = dict(progress)
+                partial = progress.pop("partialResult", None)
+                if partial is not None:
+                    data["partialResult"] = partial
                 data.update(status="processing", progress=progress)
                 self._save(data)
 
@@ -144,6 +148,8 @@ class TryOnJobs:
                 # Readers cannot observe completion before capacity is released.
                 try:
                     data.update(outcome)
+                    if data["status"] == "success":
+                        data.pop("partialResult", None)
                     self._save(data)
                 finally:
                     self.active = None

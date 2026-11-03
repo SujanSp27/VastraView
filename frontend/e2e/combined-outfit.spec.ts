@@ -13,6 +13,8 @@ const top = {
   originalUrl: "/outfit-test/original.png",
   previewUrl: "/outfit-test/top.png",
   garmentCategory: "t-shirt",
+  garmentPhotoType: "flat-lay",
+  garmentUrl: "/outfit-test/reference.png",
   timingSeconds: 20,
   provenance: { backend: "FASHN VTON 1.5" },
   warnings: [],
@@ -93,7 +95,19 @@ test("combined uploads, failed second stage, retry reuse and stage comparison", 
   expect(requests[0]).toContain('name="bottomwearImage"');
   expect(requests[0]).toContain('name="bottomwearCategory"\r\n\r\njeans');
   expect(requests[0]).not.toContain('name="topwearRunId"');
-  await page.getByRole("alert").getByRole("button", { name: /retry/i }).click();
+  // Reload loses browser File objects but must retain the owner-scoped top run.
+  await page.reload();
+  await expect(page.getByRole("alert")).toContainText("Bottomwear failed");
+  await page.getByRole("button", { name: "Restore topwear inputs" }).click();
+  await expect(
+    page.getByLabel("Garment photo type", { exact: true }),
+  ).toHaveValue("flat-lay");
+  await page
+    .getByLabel("Your bottomwear", { exact: true })
+    .setInputFiles(path.resolve("../assets/garments/formal-pant1_hm.jpg"));
+  await page
+    .getByRole("button", { name: "Generate try-on", exact: true })
+    .click();
   await expect(
     page.getByRole("button", { name: "Combined outfit", exact: true }),
   ).toBeVisible();
@@ -152,4 +166,96 @@ test("bottomwear-only uses existing single endpoint and one-piece does not combi
   await expect(page.getByRole("alert")).toContainText("Transport test only");
   expect(submitted).toContain('name="garmentCategory"\r\n\r\ntrouser');
   expect(submitted).not.toContain('name="bottomwearImage"');
+});
+
+test("topwear and bottomwear sizing keep separate chart requests and results", async ({
+  page,
+}) => {
+  await page.addInitScript(() =>
+    sessionStorage.setItem(
+      "formfit:measurement_session",
+      JSON.stringify({
+        measurements: {
+          shoulder_width: 44,
+          chest_circumference: 96,
+          waist_circumference: 80,
+          hip_circumference: 98,
+          thigh_circumference: 54,
+          inseam_length: 78,
+        },
+        height: 175,
+      }),
+    ),
+  );
+  const chart = (category: string, metrics: string[]) => ({
+    brand_id: "fixture",
+    brand_name: "Transport fixture",
+    apparel_id: category,
+    category,
+    version: 1,
+    gender: "unisex",
+    market: "IN",
+    is_demo: false,
+    source: "Transport fixture only",
+    measurement_basis: "body",
+    active_metrics: metrics,
+    notes: [],
+  });
+  const topChart = chart("t-shirt", ["chest_circumference"]);
+  const bottomChart = chart("jeans", [
+    "waist_circumference",
+    "hip_circumference",
+  ]);
+  await page.route("**/api/v1/sizing/brands?*", (route) =>
+    route.fulfill({
+      json: [
+        {
+          brand_id: "fixture",
+          brand_name: "Transport fixture",
+          recommendation_available: true,
+          available_charts: [topChart, bottomChart],
+        },
+      ],
+    }),
+  );
+  const payloads: Record<string, unknown>[] = [];
+  await page.route("**/api/v1/sizing/recommend", (route) => {
+    const body = route.request().postDataJSON();
+    payloads.push(body);
+    return route.fulfill({
+      json: {
+        recommended_size: body.apparel_id === "jeans" ? "30" : "M",
+        chart: body.apparel_id === "jeans" ? bottomChart : topChart,
+        warnings: [],
+      },
+    });
+  });
+  await page.goto("/tryon");
+  await page
+    .getByLabel("Your bottomwear", { exact: true })
+    .setInputFiles(path.resolve("../assets/garments/formal-pant1_hm.jpg"));
+  await page.getByText("Topwear size recommendation", { exact: true }).click();
+  await page
+    .getByLabel("Topwear size chart", { exact: true })
+    .selectOption("fixture/t-shirt/1");
+  await page
+    .getByRole("button", { name: "Find topwear size", exact: true })
+    .click();
+  await expect(page.getByText("Topwear: M", { exact: true })).toBeVisible();
+  await page
+    .getByText("Bottomwear size recommendation", { exact: true })
+    .click();
+  await page
+    .getByLabel("Bottomwear size chart", { exact: true })
+    .selectOption("fixture/jeans/1");
+  await page
+    .getByRole("button", { name: "Find bottomwear size", exact: true })
+    .click();
+  await expect(page.getByText("Bottomwear: 30", { exact: true })).toBeVisible();
+  await expect(page.getByText("Topwear: M", { exact: true })).toBeVisible();
+  expect(payloads[0].measurements).toEqual({ chest_circumference: 96 });
+  expect(payloads[1].measurements).toEqual({
+    waist_circumference: 80,
+    hip_circumference: 98,
+  });
 });

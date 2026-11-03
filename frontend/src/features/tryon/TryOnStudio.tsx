@@ -78,6 +78,7 @@ export default function TryOnStudio() {
         setResultStage("final");
         const top = next.outfit?.topwear ?? next;
         setCategory(top.garmentCategory);
+        if (top.garmentPhotoType) setPhotoType(top.garmentPhotoType);
         if (topCategories.has(top.garmentCategory)) setRetainedTop(top);
       }
     },
@@ -347,6 +348,26 @@ export default function TryOnStudio() {
       if (retainedTop) form.append("topwearRunId", retainedTop.runId);
       await submit(form, "/api/tryon/outfit");
     } else await submit(form);
+  }
+  async function restoreTopInputs() {
+    if (!retainedTop?.garmentUrl || !retainedTop.garmentPhotoType) return;
+    setSamplesBusy(true);
+    setError("");
+    try {
+      const [source, reference] = await Promise.all([
+        downloadPhoto(retainedTop.originalUrl, "saved-original.png"),
+        downloadPhoto(retainedTop.garmentUrl, "saved-topwear.png"),
+      ]);
+      setPerson(source);
+      setGarment(reference);
+      setPhotoType(retainedTop.garmentPhotoType);
+      setSelectedGarment(undefined);
+      setEditing(true);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setSamplesBusy(false);
+    }
   }
   return (
     <>
@@ -692,6 +713,23 @@ export default function TryOnStudio() {
           </p>
         </aside>
         <div className="tryon-result">
+          {retainedTop?.garmentUrl &&
+            retainedTop.garmentPhotoType &&
+            (!person || !garment) && (
+              <div className="card result-caption">
+                <p>
+                  Your completed topwear is saved. Restore its inputs and select
+                  bottomwear to continue without regenerating the top.
+                </p>
+                <button
+                  className="button secondary"
+                  disabled={busy || samplesBusy}
+                  onClick={() => void restoreTopInputs()}
+                >
+                  Restore topwear inputs
+                </button>
+              </div>
+            )}
           {result?.outfit && (
             <div
               className="row-between"

@@ -119,11 +119,29 @@ def test_incomplete_packaging_is_not_published(setup, monkeypatch):
     from backend.app import outfits
     db, pipeline, _ = setup
     def fail(*args):
+        statuses = list(db.scalars(select(Run.status)))
+        assert sorted(statuses) == ["processing", "success"]
         raise OSError("Disk unavailable")
     monkeypatch.setattr(outfits.shutil, "copyfile", fail)
     with pytest.raises(OutfitFailure):
         generate(db, pipeline)
     assert sorted(db.scalars(select(Run.status))) == ["failed", "success"]
+
+
+def test_restart_retains_checkpoint_without_repeating_inference(tmp_path):
+    from uuid import uuid4
+    key = str(uuid4())
+    worker = TryOnJobs(tmp_path, BoundedSemaphore(1))
+    try:
+        worker._save({"jobId": key, "status": "processing", "owner": "alice", "createdAt": 1,
+                      "requestHash": "original", "partialResult": {"runId": "saved-top"}})
+        worker.recover_interrupted()
+        result = worker.get(key, owner="alice")
+        assert result["status"] == "failed"
+        assert result["partialResult"] == {"runId": "saved-top"}
+        assert result["error"]["code"] == "job_interrupted"
+    finally:
+        worker.close()
 
 
 @pytest.mark.parametrize("top,bottom", [("dress", "jeans"), ("shirt", "jumpsuit"), ("jeans", "shirt")])

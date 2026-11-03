@@ -198,6 +198,22 @@ def _validate_dress(old, source, target):
     return int(np.count_nonzero(leaked))
 
 
+def _validate_skirt(old, target):
+    """Do not accept retained trousers merely because both are model bottoms.
+
+    Reuse the dress gate's parser-noise allowance. This validates a semantic
+    mismatch only, not fabric fidelity or a particular skirt length.
+    """
+    tolerance = max(16, round(np.count_nonzero(old) * .005))
+    if (np.count_nonzero(old & (target == 6)) > tolerance
+            or np.count_nonzero(old & (target == 5)) <= tolerance):
+        raise PipelineError(
+            "skirt_transfer_incomplete",
+            "The generated skirt retained trousers or could not be identified as a skirt. "
+            "This result was rejected. Try a clearer skirt reference and a person photo with similar coverage.",
+        )
+
+
 def preserve_regions(original, generated, source, target, category, *, reference_labels=None, garment_kind=None):
     if category not in LABELS:
         raise ValueError("Unknown garment category")
@@ -211,6 +227,11 @@ def preserve_regions(original, generated, source, target, category, *, reference
     if garment_kind == "dress":
         dress_leakage = _validate_dress(old, source, target)
         new = target == 4
+    if garment_kind == "skirt":
+        if category != "bottoms":
+            raise ValueError("Skirt requires bottoms model routing")
+        _validate_skirt(old, target)
+        new = target == 5
     head = np.isin(source, (1, 2, 9, 11))
     if np.count_nonzero(head) < source.size * .001:
         raise PipelineError("face_not_visible", "Use a clear photo with the person's face and hair visible.")

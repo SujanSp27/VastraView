@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { sizingService } from "../../services/sizingService";
 import type { Brand, Recommendation } from "../../types/studio";
@@ -18,6 +18,7 @@ export default function OutfitSizing({
   const [result, setResult] = useState<Recommendation>();
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const version = useRef(0);
   const charts = brands
     .flatMap((brand) => brand.available_charts)
     .filter(
@@ -45,25 +46,30 @@ export default function OutfitSizing({
     };
   }, []);
   useEffect(() => {
+    version.current++;
     setResult(undefined);
-  }, [active.measurements, selected]);
+    setBusy(false);
+    return () => {
+      version.current++;
+    };
+  }, [active.measurements, active.extraction, selected]);
   async function recommend() {
     if (!chart || !active.measurements) return;
     setBusy(true);
     setError("");
+    const requestVersion = version.current;
     try {
-      setResult(
-        await sizingService.recommend(
-          chart,
-          active.measurements,
-          active.extraction,
-          active.reviewedMetrics,
-        ),
+      const recommendation = await sizingService.recommend(
+        chart,
+        active.measurements,
+        active.extraction,
+        active.reviewedMetrics,
       );
+      if (requestVersion === version.current) setResult(recommendation);
     } catch (e) {
-      setError((e as Error).message);
+      if (requestVersion === version.current) setError((e as Error).message);
     } finally {
-      setBusy(false);
+      if (requestVersion === version.current) setBusy(false);
     }
   }
   return (
@@ -76,6 +82,7 @@ export default function OutfitSizing({
       <label className="field">
         {label} size chart
         <select
+          aria-label={`${label} size chart`}
           value={selected}
           disabled={busy}
           onChange={(e) => setSelected(e.target.value)}

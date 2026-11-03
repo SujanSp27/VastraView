@@ -24,6 +24,34 @@ def person():
     return original, 255 - original, source
 
 
+@pytest.mark.parametrize("partial_skirt", [False, True])
+def test_skirt_rejects_retained_trousers_even_when_bottoms_exist(person, partial_skirt):
+    original, generated, source = person
+    target = source.copy()
+    if partial_skirt:
+        target[125:160, 45:115] = 5
+    with pytest.raises(PipelineError) as failure:
+        preserve_regions(original, generated, source, target, "bottoms", garment_kind="skirt")
+    assert failure.value.code == "skirt_transfer_incomplete"
+
+
+def test_skirt_with_visible_continuous_coverage_preserves_top(person):
+    original, generated, source = person
+    target = source.copy()
+    target[target == 6] = 5
+    image, _, report = preserve_regions(original, generated, source, target, "bottoms", garment_kind="skirt")
+    np.testing.assert_array_equal(image[source == 3], original[source == 3])
+    assert report["changedNonTargetClothingPixels"] == 0
+
+
+def test_skirt_parser_speckle_does_not_invalidate_transfer(person):
+    original, generated, source = person
+    target = source.copy()
+    target[target == 6] = 5
+    target[150, 60] = 6
+    preserve_regions(original, generated, source, target, "bottoms", garment_kind="skirt")
+
+
 @pytest.mark.parametrize("lower_label", [5, 6, 7])
 def test_generated_top_can_cover_source_waistband_without_clipping(person, lower_label):
     original, generated, source = person

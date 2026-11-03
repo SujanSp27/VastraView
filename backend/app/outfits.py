@@ -9,7 +9,6 @@ import shutil
 import time
 from contextlib import contextmanager
 
-from backend.app.models import Run
 from backend.app.online_vton import normalized_image
 from backend.app.pipeline import TryOnPipeline
 from backend.app.private_data import owned_run
@@ -87,14 +86,7 @@ def run_outfit(pipeline, db, person, topwear, bottomwear, *, top_category, botto
         with stage_progress("outfit_topwear"):
             top = pipeline.run(db, person, topwear, None, top_category, photo_type=top_photo_type, owner=owner)
     top_seconds = time.perf_counter() - tick
-    final = None
-    try:
-        top_image = (pipeline.store.folder(top["runId"]) / "tryon-2d.png").read_bytes()
-        tick = time.perf_counter()
-        bottom_pipeline = TryOnPipeline(pipeline.store, PreservingBottomWorker(pipeline.worker))
-        with stage_progress("outfit_bottomwear"):
-            final = bottom_pipeline.run(db, top_image, bottomwear, None, bottom_category,
-                                        photo_type=bottom_photo_type, owner=owner)
+    def finalize(final):
         bottom_seconds = time.perf_counter() - tick
         final["outfit"] = {
             "strategy": "sequential-top-then-bottom", "topwear": top,
@@ -119,21 +111,21 @@ def run_outfit(pipeline, db, person, topwear, bottomwear, *, top_category, botto
         }
         final["timingSeconds"] = round(time.perf_counter() - started, 3)
         final["warnings"] += ["Two sequential generations were used. Inspect the waistband and both garments; visual fidelity is not guaranteed."]
-        pipeline.store.write_json(final["runId"], "result.json", final)
-        record = db.get(Run, final["runId"])
-        record.metadata_json = {**record.metadata_json, "result": final}
-        db.commit()
         return final
+
+    try:
+        # Durable job checkpoint: a server restart cannot erase the completed
+        # first stage or cause it to be silently inferred again.
+        callback = _callback.get()
+        if callback:
+            callback({"stage": "outfit_bottomwear", "partialResult": top})
+        top_image = (pipeline.store.folder(top["runId"]) / "tryon-2d.png").read_bytes()
+        tick = time.perf_counter()
+        bottom_pipeline = TryOnPipeline(pipeline.store, PreservingBottomWorker(pipeline.worker))
+        with stage_progress("outfit_bottomwear"):
+            return bottom_pipeline.run(db, top_image, bottomwear, None, bottom_category,
+                                       photo_type=bottom_photo_type, owner=owner, finalize=finalize)
     except Exception as exc:
-        if final is not None:
-            # Final packaging must succeed before this run is retrievable as an outfit.
-            db.rollback()
-            record = db.get(Run, final["runId"])
-            record.status = "failed"
-            record.metadata_json = {**record.metadata_json, "result": None,
-                                    "code": "outfit_finalization_failed"}
-            (pipeline.store.folder(final["runId"]) / "result.json").unlink(missing_ok=True)
-            db.commit()
         if not isinstance(exc, PipelineError):
             exc = PipelineError("outfit_failed", "The second stage could not be completed. Retry bottomwear.", 500)
         raise OutfitFailure(exc, top) from exc

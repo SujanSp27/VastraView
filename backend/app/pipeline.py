@@ -21,7 +21,7 @@ class TryOnPipeline:
 
     def run(self, db: Session, person_data: bytes, garment_data: bytes,
             brand_id: int | None, category: str, fit: str = "regular",
-            photo_type: str = "flat-lay", owner: str | None = None) -> dict:
+            photo_type: str = "flat-lay", owner: str | None = None, *, finalize=None) -> dict:
         run_id = str(uuid4())
         folder = self.store.create(run_id)
         start = time.perf_counter()
@@ -45,7 +45,7 @@ class TryOnPipeline:
             result = {
                 "status": "success", "mode": "2d", "renderingMethod": "pretrained-vton",
                 "runId": run_id, "brandId": brand_id, "brandName": brand.name if brand else None,
-                "garmentCategory": category, "fit": fit, "recommendedSize": None,
+                "garmentCategory": category, "garmentPhotoType": photo_type, "fit": fit, "recommendedSize": None,
                 "measurements": None, "score": None, "explanation": {}, "candidates": [],
                 "chartVersion": None, "previewUrl": self.store.url(run_id, "tryon-2d.png"),
                 "originalUrl": self.store.url(run_id, "original-person.png"),
@@ -65,6 +65,10 @@ class TryOnPipeline:
                               ("tryon-2d.png", "original-person.png", "garment-reference.png")},
             }
             result["artifacts"]["result"] = f"/assets/{run_id}/result.json"
+            # Combined outfits package their original/intermediate images while
+            # this run is still processing and therefore not publicly retrievable.
+            if finalize is not None:
+                result = finalize(result)
             self.store.write_json(run_id, "result.json", result)
             record.status = "success"
             record.metadata_json = {**metadata, "result": result}

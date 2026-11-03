@@ -23,6 +23,7 @@ export type Result = {
   originalUrl: string;
   garmentUrl?: string;
   garmentCategory: string;
+  garmentPhotoType?: "flat-lay" | "model";
   timingSeconds: number;
   provenance: { backend: string; execution?: string };
   warnings: string[];

@@ -169,12 +169,14 @@ export function useTryOnJob(
           setJobId(undefined);
           setMessage("");
           if (job.status === "failed") {
-            forgetJob();
             if (
               job.partialResult?.status === "success" &&
               job.partialResult.renderingMethod === "pretrained-vton"
-            )
+            ) {
+              // Keep only the job ID, not photos or tokens, so a refresh can
+              // retrieve the completed top stage through the owner-checked API.
               callbacks.current.onResult(job.partialResult);
+            } else forgetJob();
             callbacks.current.onError(job.error?.message ?? "Try-on failed.");
           } else if (
             !job.result ||

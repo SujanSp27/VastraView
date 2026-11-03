@@ -45,6 +45,11 @@ test("real private Colab result survives refresh, denies strangers and downloads
   );
   const category = process.env.VASTRAVIEW_LIVE_CATEGORY ?? "t-shirt";
   const photoType = process.env.VASTRAVIEW_LIVE_PHOTO_TYPE ?? "flat-lay";
+  const bottomPath = process.env.VASTRAVIEW_LIVE_BOTTOM_GARMENT;
+  const bottomCategory =
+    process.env.VASTRAVIEW_LIVE_BOTTOM_CATEGORY ?? "trouser";
+  const bottomPhotoType =
+    process.env.VASTRAVIEW_LIVE_BOTTOM_PHOTO_TYPE ?? "flat-lay";
   const upload = (filename: string) => {
     const mimeTypes: Record<string, string> = {
       ".jpg": "image/jpeg",
@@ -63,11 +68,18 @@ test("real private Colab result survives refresh, denies strangers and downloads
   };
   const person = upload(personPath),
     garment = upload(garmentPath);
-  const inputFingerprint = createHash("sha256")
+  const bottom = bottomPath
+    ? upload(path.resolve(root, bottomPath))
+    : undefined;
+  const fingerprint = createHash("sha256")
     .update(JSON.stringify({ category, photoType }))
     .update(createHash("sha256").update(person.buffer).digest())
-    .update(createHash("sha256").update(garment.buffer).digest())
-    .digest("hex");
+    .update(createHash("sha256").update(garment.buffer).digest());
+  if (bottom)
+    fingerprint
+      .update(JSON.stringify({ bottomCategory, bottomPhotoType }))
+      .update(createHash("sha256").update(bottom.buffer).digest());
+  const inputFingerprint = fingerprint.digest("hex");
   const state: State = existsSync(stateFile)
     ? JSON.parse(readFileSync(stateFile, "utf8"))
     : { idempotencyKey: randomUUID() };
@@ -81,7 +93,8 @@ test("real private Colab result survives refresh, denies strangers and downloads
     (process.env.VASTRAVIEW_LIVE_PERSON ||
       process.env.VASTRAVIEW_LIVE_GARMENT ||
       process.env.VASTRAVIEW_LIVE_CATEGORY ||
-      process.env.VASTRAVIEW_LIVE_PHOTO_TYPE)
+      process.env.VASTRAVIEW_LIVE_PHOTO_TYPE ||
+      bottomPath)
   )
     throw new Error(
       "Existing job has no input fingerprint; preserve it and use a new case name.",
@@ -131,19 +144,29 @@ test("real private Colab result survives refresh, denies strangers and downloads
         },
       )
       .toBe(true);
-    const submitted = await page.request.post("/api/tryon", {
-      headers: {
-        Prefer: "respond-async",
-        "Idempotency-Key": state.idempotencyKey,
+    const submitted = await page.request.post(
+      bottom ? "/api/tryon/outfit" : "/api/tryon",
+      {
+        headers: {
+          Prefer: "respond-async",
+          "Idempotency-Key": state.idempotencyKey,
+        },
+        multipart: {
+          personImage: person,
+          garmentImage: garment,
+          garmentCategory: category,
+          garmentPhotoType: photoType,
+          tryonMode: "2d",
+          ...(bottom
+            ? {
+                bottomwearImage: bottom,
+                bottomwearCategory: bottomCategory,
+                bottomwearPhotoType: bottomPhotoType,
+              }
+            : {}),
+        },
       },
-      multipart: {
-        personImage: person,
-        garmentImage: garment,
-        garmentCategory: category,
-        garmentPhotoType: photoType,
-        tryonMode: "2d",
-      },
-    });
+    );
     expect(submitted.status(), await submitted.text()).toBe(202);
     state.jobId = (await submitted.json()).jobId;
     expect(state.jobId).toBeTruthy();
@@ -157,18 +180,37 @@ test("real private Colab result survives refresh, denies strangers and downloads
         );
         expect(response.ok()).toBe(true);
         const job = await response.json();
-        if (job.status === "failed") throw new Error(JSON.stringify(job.error));
+        writeFileSync(
+          path.join(evidence, "job.json"),
+          JSON.stringify(job, null, 2),
+        );
         return job.status;
       },
       { timeout: 180000, intervals: [3000] },
     )
-    .toBe("success");
+    .toMatch(/^(success|failed)$/);
   const job = await (
     await page.request.get(`/api/tryon/jobs/${state.jobId}`)
   ).json();
   writeFileSync(path.join(evidence, "job.json"), JSON.stringify(job, null, 2));
+  // Verify saved-top privacy and recovery even when the real second stage is
+  // rejected. The final assertion still fails this live generation test.
+  const generationFailed = job.status === "failed";
+  if (generationFailed) {
+    expect(job.partialResult, JSON.stringify(job.error)).toBeTruthy();
+    job.result = job.partialResult;
+  }
   expect(job.result.renderingMethod).toBe("pretrained-vton");
   expect(job.result.provenance.localGpuUsed).toBe(false);
+  if (bottom && !generationFailed) {
+    expect(job.result.outfit.strategy).toBe("sequential-top-then-bottom");
+    expect(job.result.outfit.preservation.changedNonTargetClothingPixels).toBe(
+      0,
+    );
+    const top = await page.request.get(job.result.outfit.topwear.previewUrl);
+    expect(top.status()).toBe(200);
+    writeFileSync(path.join(evidence, "topwear.png"), await top.body());
+  }
   const original = await page.request.get(job.result.originalUrl);
   const after = await page.request.get(job.result.previewUrl);
   expect(original.status()).toBe(200);
@@ -197,18 +239,35 @@ test("real private Colab result survives refresh, denies strangers and downloads
   }
   let posts = 0;
   page.on("request", (r) => {
-    if (r.method() === "POST" && r.url().endsWith("/api/tryon")) posts++;
+    if (r.method() === "POST" && /\/api\/tryon(?:\/outfit)?$/.test(r.url()))
+      posts++;
   });
   await page.goto(`/tryon?job=${state.jobId}`);
   const viewer = page.getByTestId("viewer");
   await expect(viewer).toHaveAttribute("data-loaded", "true", {
     timeout: 30000,
   });
+  if (generationFailed)
+    await expect(page.getByRole("alert")).toContainText(
+      "Your topwear result is saved",
+    );
   await page.reload();
   await expect(viewer).toHaveAttribute("data-loaded", "true");
   await expect(
     viewer.getByRole("img", { name: "Generated virtual try-on", exact: true }),
   ).toHaveAttribute("src", job.result.previewUrl);
+  if (bottom && !generationFailed) {
+    await page.getByRole("button", { name: "Topwear only", exact: true }).click();
+    await expect(viewer.getByRole("img", { name: "Generated virtual try-on", exact: true }))
+      .toHaveAttribute("src", job.result.outfit.topwear.previewUrl);
+    await page.getByRole("button", { name: "Combined outfit", exact: true }).click();
+    await expect(viewer.getByRole("img", { name: "Generated virtual try-on", exact: true }))
+      .toHaveAttribute("src", job.result.previewUrl);
+  }
+  await page.getByRole("button", { name: "Inspect details", exact: true }).click();
+  await expect(page.getByRole("dialog").getByRole("img", { name: "Generated outfit at adjustable zoom" }))
+    .toHaveAttribute("src", job.result.previewUrl);
+  await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Side by side", exact: true }).click();
   await page.screenshot({
     path: path.join(evidence, "desktop.png"),
@@ -241,4 +300,23 @@ test("real private Colab result survives refresh, denies strangers and downloads
   expect(posts).toBe(0);
   expect(errors).toEqual([]);
   await context.storageState({ path: sessionFile });
+  writeFileSync(
+    path.join(evidence, "browser-verification.json"),
+    JSON.stringify(
+      {
+        jobStatus: job.status,
+        verifiedImage: generationFailed ? "saved-topwear" : "final-result",
+        privateAccess: true,
+        reload: true,
+        comparisonModes: true,
+        downloadHashMatches: true,
+        mobileOverflow: false,
+        duplicateSubmissions: posts,
+        visualApproval: "not established by browser checks",
+      },
+      null,
+      2,
+    ),
+  );
+  expect(job.status, JSON.stringify(job.error)).toBe("success");
 });
