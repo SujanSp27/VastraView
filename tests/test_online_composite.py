@@ -42,6 +42,7 @@ def test_skirt_with_visible_continuous_coverage_preserves_top(person):
     image, _, report = preserve_regions(original, generated, source, target, "bottoms", garment_kind="skirt")
     np.testing.assert_array_equal(image[source == 3], original[source == 3])
     assert report["changedNonTargetClothingPixels"] == 0
+    assert report["skirtTransferValidated"] is True
 
 
 def test_skirt_parser_speckle_does_not_invalidate_transfer(person):

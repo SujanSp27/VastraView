@@ -197,11 +197,15 @@ async def serve() -> None:
                             if payload.get("method") == "list_tools":
                                 result = await list_tools()
                             elif payload.get("method") == "call_tool":
-                                # A browser can connect after the previous snapshot was written.
-                                if not await discover():
+                                name = payload.get("name")
+                                # Use the tools advertised by this live session.
+                                # Rediscover only when missing; an unconditional
+                                # second discovery can time out before a known
+                                # notebook tool is ever called. Change events and
+                                # timed discovery failures still invalidate tools.
+                                if name not in tool_names and not await discover():
                                     raise TimeoutError("Notebook discovery timed out; existing browser connection preserved")
                                 readiness("processing", currentRequest=request.stem)
-                                name = payload.get("name")
                                 arguments = payload.get("arguments", {})
                                 if name not in tool_names:
                                     raise ValueError("Unknown tool. Read tools.json for the current schema.")

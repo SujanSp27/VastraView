@@ -75,4 +75,6 @@ def test_export_embeds_real_category_and_compositor_sources_without_executing_th
     assert "ml/vton/categories.py" in payload
     composite = base64.b64decode(payload["ml/vton/online_composite.py"])
     assert b"semantic-category-preservation-v11" in composite
+    assert b"skirt_transfer_incomplete" in composite
+    assert b'"skirtTransferValidated"' in composite
     assert ast.literal_eval(invocation.args[2]) == "runtime-a"

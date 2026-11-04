@@ -102,6 +102,24 @@ def test_failed_preservation_never_becomes_combined_success(setup, field, value)
     assert sorted(db.scalars(select(Run.status))) == ["failed", "success"]
 
 
+@pytest.mark.parametrize("verified", [None, False, True])
+def test_combined_skirt_requires_worker_category_validation(setup, verified):
+    db, pipeline, worker = setup
+    if verified is not None:
+        worker.proof["skirtTransferValidated"] = verified
+    def run():
+        return run_outfit(pipeline, db, photo("white"), photo("red"), photo("black"),
+                          top_category="shirt", bottom_category="skirt", owner="alice")
+    if verified is True:
+        assert run()["outfit"]["preservation"]["skirtTransferValidated"] is True
+    else:
+        with pytest.raises(OutfitFailure) as exc:
+            run()
+        assert exc.value.code == "outfit_skirt_validation_unavailable"
+        assert db.get(Run, exc.value.partial_result["runId"]).status == "success"
+        assert sorted(db.scalars(select(Run.status))) == ["failed", "success"]
+
+
 def test_reuse_requires_owner_and_identical_inputs(setup):
     db, pipeline, worker = setup
     result = generate(db, pipeline)

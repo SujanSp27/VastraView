@@ -257,16 +257,33 @@ test("real private Colab result survives refresh, denies strangers and downloads
     viewer.getByRole("img", { name: "Generated virtual try-on", exact: true }),
   ).toHaveAttribute("src", job.result.previewUrl);
   if (bottom && !generationFailed) {
-    await page.getByRole("button", { name: "Topwear only", exact: true }).click();
-    await expect(viewer.getByRole("img", { name: "Generated virtual try-on", exact: true }))
-      .toHaveAttribute("src", job.result.outfit.topwear.previewUrl);
-    await page.getByRole("button", { name: "Combined outfit", exact: true }).click();
-    await expect(viewer.getByRole("img", { name: "Generated virtual try-on", exact: true }))
-      .toHaveAttribute("src", job.result.previewUrl);
+    await page
+      .getByRole("button", { name: "Topwear only", exact: true })
+      .click();
+    await expect(
+      viewer.getByRole("img", {
+        name: "Generated virtual try-on",
+        exact: true,
+      }),
+    ).toHaveAttribute("src", job.result.outfit.topwear.previewUrl);
+    await page
+      .getByRole("button", { name: "Combined outfit", exact: true })
+      .click();
+    await expect(
+      viewer.getByRole("img", {
+        name: "Generated virtual try-on",
+        exact: true,
+      }),
+    ).toHaveAttribute("src", job.result.previewUrl);
   }
-  await page.getByRole("button", { name: "Inspect details", exact: true }).click();
-  await expect(page.getByRole("dialog").getByRole("img", { name: "Generated outfit at adjustable zoom" }))
-    .toHaveAttribute("src", job.result.previewUrl);
+  await page
+    .getByRole("button", { name: "Inspect details", exact: true })
+    .click();
+  await expect(
+    page
+      .getByRole("dialog")
+      .getByRole("img", { name: "Generated outfit at adjustable zoom" }),
+  ).toHaveAttribute("src", job.result.previewUrl);
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Side by side", exact: true }).click();
   await page.screenshot({

@@ -33,12 +33,13 @@ def test_completed_call_survives_broken_discovery_and_has_appropriate_deadline(t
 
         async def list_tools(self, **kwargs):
             self.list_count += 1
-            if self.list_count > 2:
+            if self.list_count > 1:
                 stopped.touch()
                 raise TimeoutError("Browser disappeared after the successful cell")
             return SimpleNamespace(tools=[SimpleNamespace(name=tool)], nextCursor=None)
 
         async def call_tool(self, name, arguments):
+            assert self.list_count == 1, "A known tool must not wait on redundant discovery"
             running = json.loads((tmp_path / "readiness.json").read_text())
             assert running["status"] == "processing" and running["currentRequest"] == "trial"
             if not discovery_timeout:

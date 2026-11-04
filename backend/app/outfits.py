@@ -38,8 +38,8 @@ class PreservingBottomWorker:
     def __init__(self, worker):
         self.worker = worker
 
-    def render(self, *args, **kwargs):
-        result = self.worker.render(*args, **kwargs)
+    def render(self, person, garment, category, photo_type, folder):
+        result = self.worker.render(person, garment, category, photo_type, folder)
         proof = result.get("preservation", {})
         if (result.get("category") != "bottoms"
                 or proof.get("nonTargetClothingPreservedExactly") is not True
@@ -47,6 +47,11 @@ class PreservingBottomWorker:
                 or proof.get("identityPreservedExactly") is not True):
             raise PipelineError("outfit_preservation_failed",
                                 "The worker could not verify preservation of the completed topwear and identity.")
+        if category == "skirt" and proof.get("skirtTransferValidated") is not True:
+            raise PipelineError(
+                "outfit_skirt_validation_unavailable",
+                "The worker did not verify skirt transfer. Update the connected worker and retry; your completed topwear is saved.",
+            )
         return result
 
 

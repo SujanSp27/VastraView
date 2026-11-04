@@ -316,6 +316,7 @@ def preserve_regions(original, generated, source, target, category, *, reference
         "visibleSkinPreservedExactly": bool(np.array_equal(output[visible_skin], original[visible_skin])),
         "garmentKind": garment_kind,
         "dressSeparateClothingPixels": dress_leakage,
+        "skirtTransferValidated": True if garment_kind == "skirt" else None,
         "changedNonTargetClothingPixels": int(np.count_nonzero(np.any(output != original, axis=2) & non_target)),
         "changedPixelsOutsideEditMask": int(np.count_nonzero(np.any(output != original, axis=2) & (alpha == 0))),
         "oldClothingMinimumAlpha": float(alpha[old & ~protected].min()),
