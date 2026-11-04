@@ -65,6 +65,11 @@ def test_actual_upload_category_and_remote_image_are_used(tmp_path, category, ma
     assert result["remoteRoundTripSeconds"] >= 0
     assert result["transport"]["uploadedImageBytes"] <= result["transport"]["normalizedInputBytes"]
     assert result["transport"]["downloadedImageBytes"] == len(png("green"))
+    timing = result["transport"]
+    assert timing["submissionSeconds"] >= 0
+    assert timing["eventWaitAndTransferSeconds"] >= 0
+    assert timing["submissionSeconds"] + timing["eventWaitAndTransferSeconds"] == pytest.approx(
+        timing["requestAndStreamSeconds"], abs=0.01)
     assert len(requests) == 2
     assert "image" not in json.loads((tmp_path / "vton-diagnostics.json").read_text())
 
@@ -75,6 +80,33 @@ def test_missing_cloud_config_fails_without_local_fallback(tmp_path):
     with pytest.raises(PipelineError, match="Local GPU inference is disabled"):
         worker.render(png(), png(), "dress", "flat-lay", tmp_path)
     assert not list(tmp_path.iterdir())
+
+
+def test_http_pool_reused_and_closed_without_replaying_generation(tmp_path):
+    calls = []
+
+    def respond(request):
+        calls.append(request.method)
+        if request.method == "POST":
+            return httpx.Response(200, json={"event_id": "pooled"})
+        payload = {"model": "FASHN VTON 1.5", "device": "cuda",
+                   "image": base64.b64encode(png("green")).decode()}
+        return httpx.Response(200, text="event: complete\ndata: " + json.dumps([payload]) + "\n\n")
+
+    worker = OnlineTryOn("https://private.gradio.live", "x" * 32,
+                        transport=httpx.MockTransport(respond))
+    client = worker.http_client()
+    try:
+        for name in ("first", "second"):
+            folder = tmp_path / name
+            folder.mkdir()
+            worker.render(png(), png("red"), "shirt", "flat-lay", folder)
+            assert worker.http_client() is client
+            assert not client.is_closed
+        assert calls == ["POST", "GET", "POST", "GET"]
+    finally:
+        worker.close()
+    assert client.is_closed
 
 
 @pytest.mark.parametrize("kind", ["dress", "jumpsuit", "blouse"])

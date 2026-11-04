@@ -169,6 +169,8 @@ test("real account, photo extraction, private history, closet, session rotation 
   await expect(page.getByRole("status")).toContainText("Profile updated");
   await page.getByRole("button", { name: "New measurement" }).click();
   await page.getByRole("button", { name: "Try a sample", exact: true }).click();
+  await page.getByRole("dialog", { name: "Choose a sample model" })
+    .getByRole("button", { name: "Select Male Model" }).click();
   const extracted = page.waitForResponse(
     (r) => r.url().endsWith("/api/v1/measurements/extract"),
     { timeout: 90000 },

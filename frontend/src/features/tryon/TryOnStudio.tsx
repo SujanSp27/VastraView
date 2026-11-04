@@ -15,10 +15,10 @@ import SampleModelModal, { type SampleModel } from "./SampleModelModal";
 import "./comparison.css";
 import { ErrorNotice } from "../../components/feedback/Feedback";
 const categories = [
-  ["t-shirt", "T-shirt"],
+  ["t-shirt", "T-shirt / Polo shirt"],
   ["shirt", "Shirt"],
-  ["blouse", "Blouse"],
-  ["sweater", "Sweater"],
+  ["blouse", "Blouse / Top"],
+  ["sweater", "Sweater / Hoodie"],
   ["jacket", "Jacket"],
   ["trouser", "Trousers"],
   ["jeans", "Jeans"],
@@ -27,33 +27,37 @@ const categories = [
   ["dress", "Dress"],
   ["jumpsuit", "Jumpsuit"],
 ];
-const topCategories = new Set([
-  "t-shirt",
-  "shirt",
-  "blouse",
-  "sweater",
-  "jacket",
-]);
-const bottomCategories = categories.filter(([value]) =>
-  ["jeans", "trouser", "shorts", "skirt"].includes(value),
-);
+type GarmentSelection = {
+  file?: File;
+  category: string;
+  photoType: string;
+  productId?: string;
+};
+const emptySelection = (): GarmentSelection => ({
+  category: "t-shirt",
+  photoType: "flat-lay",
+});
 export default function TryOnStudio() {
   const configuration = usePublicConfig();
   const [params, setParams] = useSearchParams();
   const productId = params.get("product");
   const active = useMeasurement();
   const [person, setPerson] = useState<File | undefined>(active.file);
-  const [garment, setGarment] = useState<File>();
-  const [bottomwear, setBottomwear] = useState<File>();
-  const [bottomCategory, setBottomCategory] = useState("jeans");
-  const [bottomPhotoType, setBottomPhotoType] = useState("flat-lay");
-  const [selectedBottom, setSelectedBottom] = useState<string>();
-  const [bottomPreview, setBottomPreview] = useState<string>();
-  const [browseBottom, setBrowseBottom] = useState(false);
-  const [retainedTop, setRetainedTop] = useState<Result>();
-  const [resultStage, setResultStage] = useState<"final" | "topwear">("final");
-  const [category, setCategory] = useState("t-shirt");
-  const [photoType, setPhotoType] = useState("flat-lay");
+  const [selection, setSelection] = useState<GarmentSelection>(emptySelection);
+  const {
+    file: garment,
+    category,
+    photoType,
+    productId: selectedGarment,
+  } = selection;
+  const setGarment = (file?: File) =>
+    setSelection((value) => ({ ...value, file }));
+  const setCategory = (category: string) =>
+    setSelection((value) => ({ ...value, category }));
+  const setPhotoType = (photoType: string) =>
+    setSelection((value) => ({ ...value, photoType }));
+  const setSelectedGarment = (productId?: string) =>
+    setSelection((value) => ({ ...value, productId }));
   const [result, setResult] = useState<Result>();
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState("");
@@ -69,17 +73,18 @@ export default function TryOnStudio() {
   const [preview, setPreview] = useState<string>();
   const [garmentPreview, setGarmentPreview] = useState<string>();
   const [samplesBusy, setSamplesBusy] = useState(false);
-  const [selectedGarment, setSelectedGarment] = useState<string>();
   const { busy, message, submit, reset } = useTryOnJob(
     (next) => {
       setResult(next);
       if (next) {
         setEditing(false);
-        setResultStage("final");
-        const top = next.outfit?.topwear ?? next;
-        setCategory(top.garmentCategory);
-        if (top.garmentPhotoType) setPhotoType(top.garmentPhotoType);
-        if (topCategories.has(top.garmentCategory)) setRetainedTop(top);
+        // Historical renders remain readable without restoring a multi-garment workflow.
+        if (!garment)
+          setSelection((value) => ({
+            ...value,
+            category: next.garmentCategory,
+            photoType: next.garmentPhotoType ?? value.photoType,
+          }));
       }
     },
     setError,
@@ -87,29 +92,9 @@ export default function TryOnStudio() {
       // A result selected in another tab has its own original photo. Do not keep
       // this tab's old uploads poised for an unrelated generation.
       setPerson(undefined);
-      setGarment(undefined);
-      setSelectedGarment(undefined);
-      setBottomwear(undefined);
-      setSelectedBottom(undefined);
-      setRetainedTop(undefined);
+      setSelection(emptySelection());
     },
   );
-  const canCombine = topCategories.has(category);
-  const displayedResult =
-    resultStage === "topwear" ? (result?.outfit?.topwear ?? result) : result;
-  function resetPrimary() {
-    setRetainedTop(undefined);
-    reset();
-  }
-  useEffect(() => {
-    if (!bottomwear) {
-      setBottomPreview(undefined);
-      return;
-    }
-    const url = URL.createObjectURL(bottomwear);
-    setBottomPreview(url);
-    return () => URL.revokeObjectURL(url);
-  }, [bottomwear]);
   useEffect(() => {
     if (!person) {
       setPreview(undefined);
@@ -216,7 +201,7 @@ export default function TryOnStudio() {
   async function selectSampleModel(model: SampleModel) {
     setSamplesBusy(true);
     setError("");
-    resetPrimary();
+    reset();
     try {
       const [personFile, collection] = await Promise.all([
         downloadPhoto(model.previewUrl, model.filename),
@@ -228,14 +213,17 @@ export default function TryOnStudio() {
       ]);
       setPerson(personFile);
       if (collection && collection.items.length > 0) {
+        const compatible = collection.items.filter(
+          (item) => item.tryon_supported !== false && !!item.category,
+        );
         const item =
-          collection.items.find(
+          compatible.find(
             (g) =>
               g.category &&
               ["shirt", "t-shirt", "sweater", "blouse", "dress"].includes(
                 g.category,
               ),
-          ) || collection.items[0];
+          ) || compatible[0];
         if (item) {
           const garmentFile = await downloadPhoto(
             item.referenceImageUrl ?? item.imageUrl,
@@ -262,9 +250,9 @@ export default function TryOnStudio() {
       );
       return;
     }
-    const original = result?.originalUrl;
+    const original = !person ? result?.originalUrl : undefined;
     setSamplesBusy(true);
-    resetPrimary();
+    reset();
     try {
       const [file, originalFile] = await Promise.all([
         downloadPhoto(item.referenceImageUrl ?? item.imageUrl, item.id),
@@ -273,34 +261,12 @@ export default function TryOnStudio() {
           : Promise.resolve(person),
       ]);
       setPerson(originalFile);
-      setGarment(file);
-      setCategory(item.category);
-      setPhotoType(item.photoType);
-      setSelectedGarment(item.id);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setSamplesBusy(false);
-    }
-  }
-  async function selectBottom(item: Garment) {
-    if (
-      item.tryon_supported === false ||
-      !bottomCategories.some(([value]) => value === item.category)
-    )
-      return;
-    setSamplesBusy(true);
-    setError("");
-    try {
-      const file = await downloadPhoto(
-        item.referenceImageUrl ?? item.imageUrl,
-        item.id,
-      );
-      reset();
-      setBottomwear(file);
-      setBottomCategory(item.category);
-      setBottomPhotoType(item.photoType);
-      setSelectedBottom(item.id);
+      setSelection({
+        file,
+        category: item.category,
+        photoType: item.photoType,
+        productId: item.id,
+      });
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -340,35 +306,9 @@ export default function TryOnStudio() {
     form.append("garmentCategory", category);
     form.append("garmentPhotoType", photoType);
     if (selectedGarment) form.append("productId", selectedGarment);
-    if (canCombine && bottomwear) {
-      form.append("bottomwearImage", bottomwear);
-      form.append("bottomwearCategory", bottomCategory);
-      form.append("bottomwearPhotoType", bottomPhotoType);
-      if (selectedBottom) form.append("bottomwearProductId", selectedBottom);
-      if (retainedTop) form.append("topwearRunId", retainedTop.runId);
-      await submit(form, "/api/tryon/outfit");
-    } else await submit(form);
+    await submit(form);
   }
-  async function restoreTopInputs() {
-    if (!retainedTop?.garmentUrl || !retainedTop.garmentPhotoType) return;
-    setSamplesBusy(true);
-    setError("");
-    try {
-      const [source, reference] = await Promise.all([
-        downloadPhoto(retainedTop.originalUrl, "saved-original.png"),
-        downloadPhoto(retainedTop.garmentUrl, "saved-topwear.png"),
-      ]);
-      setPerson(source);
-      setGarment(reference);
-      setPhotoType(retainedTop.garmentPhotoType);
-      setSelectedGarment(undefined);
-      setEditing(true);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setSamplesBusy(false);
-    }
-  }
+
   return (
     <>
       <div className="page-heading tryon-page-heading">
@@ -424,17 +364,21 @@ export default function TryOnStudio() {
             file={person}
             disabled={busy || samplesBusy}
             onChange={(file) => {
-              resetPrimary();
+              reset();
               setPerson(file);
             }}
           />
-          <h3>{canCombine ? "Topwear" : "Single garment"}</h3>
+          <h3>Single Garment</h3>
+          <p className="fine-print">
+            Choose one garment. Selecting another replaces it; your person photo
+            stays selected.
+          </p>
           <ImageUploader
             label="Your garment"
             file={garment}
             disabled={busy || samplesBusy}
             onChange={(file) => {
-              resetPrimary();
+              reset();
               setGarment(file);
               setSelectedGarment(undefined);
             }}
@@ -453,7 +397,7 @@ export default function TryOnStudio() {
               disabled={busy || samplesBusy}
               value={category}
               onChange={(e) => {
-                resetPrimary();
+                reset();
                 setCategory(e.target.value);
                 setSelectedGarment(undefined);
               }}
@@ -472,7 +416,7 @@ export default function TryOnStudio() {
               disabled={busy || samplesBusy}
               value={photoType}
               onChange={(e) => {
-                resetPrimary();
+                reset();
                 setPhotoType(e.target.value);
                 setSelectedGarment(undefined);
               }}
@@ -481,106 +425,11 @@ export default function TryOnStudio() {
               <option value="model">Worn by a person</option>
             </select>
           </label>
-          {canCombine && (
-            <section aria-label="Bottomwear selection">
-              <h3>
-                Bottomwear <small className="muted">(optional)</small>
-              </h3>
-              <p className="fine-print">
-                Add a second garment after topwear. Two generations take longer;
-                completed topwear is saved for retry.
-              </p>
-              <button
-                className="button secondary"
-                aria-expanded={browseBottom}
-                disabled={busy || samplesBusy}
-                onClick={() => setBrowseBottom((value) => !value)}
-              >
-                {browseBottom
-                  ? "Close bottomwear catalog"
-                  : "Browse bottomwear"}
-              </button>
-              <ImageUploader
-                label="Your bottomwear"
-                file={bottomwear}
-                disabled={busy || samplesBusy}
-                onChange={(file) => {
-                  reset();
-                  setBottomwear(file);
-                  setSelectedBottom(undefined);
-                }}
-              />
-              {bottomPreview && (
-                <img
-                  className="garment-thumb"
-                  src={bottomPreview}
-                  alt="Selected bottomwear reference"
-                />
-              )}
-              <label className="field">
-                Bottomwear category
-                <select
-                  aria-label="Bottomwear category"
-                  value={bottomCategory}
-                  disabled={busy || samplesBusy}
-                  onChange={(e) => {
-                    reset();
-                    setBottomCategory(e.target.value);
-                    setSelectedBottom(undefined);
-                  }}
-                >
-                  {bottomCategories.map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {value === "trouser"
-                        ? "Trousers / pants / joggers"
-                        : label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="field">
-                Bottomwear photo type
-                <select
-                  value={bottomPhotoType}
-                  disabled={busy || samplesBusy}
-                  onChange={(e) => {
-                    reset();
-                    setBottomPhotoType(e.target.value);
-                    setSelectedBottom(undefined);
-                  }}
-                >
-                  <option value="flat-lay">Product / flat lay</option>
-                  <option value="model">Worn by a person</option>
-                </select>
-              </label>
-              {bottomwear && (
-                <button
-                  className="button secondary"
-                  disabled={busy || samplesBusy}
-                  onClick={() => {
-                    reset();
-                    setBottomwear(undefined);
-                    setSelectedBottom(undefined);
-                    setResult(retainedTop);
-                  }}
-                >
-                  Remove bottomwear
-                </button>
-              )}
-            </section>
-          )}
           <OutfitSizing
             key={`primary-${category}-${selectedGarment ?? "upload"}`}
             category={category}
-            label={canCombine ? "Topwear" : "Garment"}
+            label="Garment"
           />
-          {canCombine && bottomwear && (
-            <OutfitSizing
-              key={`bottom-${bottomCategory}-${selectedBottom ?? "upload"}`}
-              category={bottomCategory}
-              label="Bottomwear"
-            />
-          )}
           <div
             className="model-status"
             role="status"
@@ -598,14 +447,13 @@ export default function TryOnStudio() {
                     ? "Temporarily unavailable"
                     : (availability?.displayState ?? "Preparing try-on…")}
               </strong>
-              <p>
-                {offline
-                  ? "Waiting for the app service. Retrying automatically."
-                  : availability?.reason ||
-                    (availability?.available
-                      ? "Your private Colab GPU is ready."
-                      : "Checking your Colab service automatically.")}
-              </p>
+              {!availability?.available && (
+                <p>
+                  {offline
+                    ? "Waiting for the app service. Retrying automatically."
+                    : availability?.reason || "Checking the try-on service."}
+                </p>
+              )}
             </div>
           </div>
           {!availability?.available && (
@@ -621,13 +469,13 @@ export default function TryOnStudio() {
                 >
                   {retryBusy ? "Checking…" : "Retry"}
                 </button>
-                <button
+                {configuration?.manual_worker_connection && <button
                   className="button secondary"
                   style={{ flex: 1 }}
                   onClick={() => setShowConnectModal((prev) => !prev)}
                 >
                   {showConnectModal ? "Cancel" : "Connect Colab"}
-                </button>
+                </button>}
               </div>
 
               {showConnectModal && (
@@ -645,17 +493,20 @@ export default function TryOnStudio() {
                   }}
                 >
                   <label
+                    htmlFor="worker-connection"
                     style={{
                       fontSize: "12px",
                       fontWeight: 600,
                       color: "#1e3a2b",
                     }}
                   >
-                    Paste Colab Output / Gradio Link:
+                    Worker connection
                   </label>
                   <input
-                    type="text"
-                    placeholder="Paste Colab output line or https://...gradio.live ..."
+                    id="worker-connection"
+                    type="password"
+                    autoComplete="off"
+                    placeholder="Paste the connection from your Colab notebook"
                     value={connectInput}
                     onChange={(e) => setConnectInput(e.target.value)}
                     style={{
@@ -713,51 +564,12 @@ export default function TryOnStudio() {
           </p>
         </aside>
         <div className="tryon-result">
-          {retainedTop?.garmentUrl &&
-            retainedTop.garmentPhotoType &&
-            (!person || !garment) && (
-              <div className="card result-caption">
-                <p>
-                  Your completed topwear is saved. Restore its inputs and select
-                  bottomwear to continue without regenerating the top.
-                </p>
-                <button
-                  className="button secondary"
-                  disabled={busy || samplesBusy}
-                  onClick={() => void restoreTopInputs()}
-                >
-                  Restore topwear inputs
-                </button>
-              </div>
-            )}
-          {result?.outfit && (
-            <div
-              className="row-between"
-              role="group"
-              aria-label="Outfit result stage"
-            >
-              <button
-                className="button secondary"
-                aria-pressed={resultStage === "topwear"}
-                onClick={() => setResultStage("topwear")}
-              >
-                Topwear only
-              </button>
-              <button
-                className="button secondary"
-                aria-pressed={resultStage === "final"}
-                onClick={() => setResultStage("final")}
-              >
-                Combined outfit
-              </button>
-            </div>
-          )}
           <SplitCompareViewer
-            original={displayedResult?.originalUrl ?? preview}
-            result={displayedResult?.previewUrl}
+            original={result?.originalUrl ?? preview}
+            result={result?.previewUrl}
             busy={busy}
             message={message}
-            details={displayedResult}
+            details={result}
           />
           {busy && <GenerationProgress message={message} />}{" "}
           {error && (
@@ -779,7 +591,7 @@ export default function TryOnStudio() {
               <div className="row-between">
                 <strong>
                   {error
-                    ? "Topwear saved; combined outfit incomplete."
+                    ? "A previous result is saved. The latest generation did not complete."
                     : "Your new look is ready."}
                 </strong>
                 <span className="badge">
@@ -803,14 +615,6 @@ export default function TryOnStudio() {
             selected={selectedGarment}
             onSelect={(item) => void selectGarment(item)}
           />
-          {canCombine && browseBottom && (
-            <GarmentPicker
-              garmentType="bottomwear"
-              disabled={busy || samplesBusy}
-              selected={selectedBottom}
-              onSelect={(item) => void selectBottom(item)}
-            />
-          )}
         </div>
       </div>
       <SampleModelModal

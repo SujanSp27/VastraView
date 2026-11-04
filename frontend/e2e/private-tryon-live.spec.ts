@@ -45,11 +45,10 @@ test("real private Colab result survives refresh, denies strangers and downloads
   );
   const category = process.env.VASTRAVIEW_LIVE_CATEGORY ?? "t-shirt";
   const photoType = process.env.VASTRAVIEW_LIVE_PHOTO_TYPE ?? "flat-lay";
-  const bottomPath = process.env.VASTRAVIEW_LIVE_BOTTOM_GARMENT;
-  const bottomCategory =
-    process.env.VASTRAVIEW_LIVE_BOTTOM_CATEGORY ?? "trouser";
-  const bottomPhotoType =
-    process.env.VASTRAVIEW_LIVE_BOTTOM_PHOTO_TYPE ?? "flat-lay";
+  if (process.env.VASTRAVIEW_LIVE_BOTTOM_GARMENT)
+    throw new Error(
+      "Only one garment is supported. Use VASTRAVIEW_LIVE_GARMENT.",
+    );
   const upload = (filename: string) => {
     const mimeTypes: Record<string, string> = {
       ".jpg": "image/jpeg",
@@ -68,17 +67,10 @@ test("real private Colab result survives refresh, denies strangers and downloads
   };
   const person = upload(personPath),
     garment = upload(garmentPath);
-  const bottom = bottomPath
-    ? upload(path.resolve(root, bottomPath))
-    : undefined;
   const fingerprint = createHash("sha256")
     .update(JSON.stringify({ category, photoType }))
     .update(createHash("sha256").update(person.buffer).digest())
     .update(createHash("sha256").update(garment.buffer).digest());
-  if (bottom)
-    fingerprint
-      .update(JSON.stringify({ bottomCategory, bottomPhotoType }))
-      .update(createHash("sha256").update(bottom.buffer).digest());
   const inputFingerprint = fingerprint.digest("hex");
   const state: State = existsSync(stateFile)
     ? JSON.parse(readFileSync(stateFile, "utf8"))
@@ -93,8 +85,7 @@ test("real private Colab result survives refresh, denies strangers and downloads
     (process.env.VASTRAVIEW_LIVE_PERSON ||
       process.env.VASTRAVIEW_LIVE_GARMENT ||
       process.env.VASTRAVIEW_LIVE_CATEGORY ||
-      process.env.VASTRAVIEW_LIVE_PHOTO_TYPE ||
-      bottomPath)
+      process.env.VASTRAVIEW_LIVE_PHOTO_TYPE)
   )
     throw new Error(
       "Existing job has no input fingerprint; preserve it and use a new case name.",
@@ -144,29 +135,19 @@ test("real private Colab result survives refresh, denies strangers and downloads
         },
       )
       .toBe(true);
-    const submitted = await page.request.post(
-      bottom ? "/api/tryon/outfit" : "/api/tryon",
-      {
-        headers: {
-          Prefer: "respond-async",
-          "Idempotency-Key": state.idempotencyKey,
-        },
-        multipart: {
-          personImage: person,
-          garmentImage: garment,
-          garmentCategory: category,
-          garmentPhotoType: photoType,
-          tryonMode: "2d",
-          ...(bottom
-            ? {
-                bottomwearImage: bottom,
-                bottomwearCategory: bottomCategory,
-                bottomwearPhotoType: bottomPhotoType,
-              }
-            : {}),
-        },
+    const submitted = await page.request.post("/api/tryon", {
+      headers: {
+        Prefer: "respond-async",
+        "Idempotency-Key": state.idempotencyKey,
       },
-    );
+      multipart: {
+        personImage: person,
+        garmentImage: garment,
+        garmentCategory: category,
+        garmentPhotoType: photoType,
+        tryonMode: "2d",
+      },
+    });
     expect(submitted.status(), await submitted.text()).toBe(202);
     state.jobId = (await submitted.json()).jobId;
     expect(state.jobId).toBeTruthy();
@@ -193,24 +174,9 @@ test("real private Colab result survives refresh, denies strangers and downloads
     await page.request.get(`/api/tryon/jobs/${state.jobId}`)
   ).json();
   writeFileSync(path.join(evidence, "job.json"), JSON.stringify(job, null, 2));
-  // Verify saved-top privacy and recovery even when the real second stage is
-  // rejected. The final assertion still fails this live generation test.
-  const generationFailed = job.status === "failed";
-  if (generationFailed) {
-    expect(job.partialResult, JSON.stringify(job.error)).toBeTruthy();
-    job.result = job.partialResult;
-  }
+  expect(job.status, JSON.stringify(job.error)).toBe("success");
   expect(job.result.renderingMethod).toBe("pretrained-vton");
   expect(job.result.provenance.localGpuUsed).toBe(false);
-  if (bottom && !generationFailed) {
-    expect(job.result.outfit.strategy).toBe("sequential-top-then-bottom");
-    expect(job.result.outfit.preservation.changedNonTargetClothingPixels).toBe(
-      0,
-    );
-    const top = await page.request.get(job.result.outfit.topwear.previewUrl);
-    expect(top.status()).toBe(200);
-    writeFileSync(path.join(evidence, "topwear.png"), await top.body());
-  }
   const original = await page.request.get(job.result.originalUrl);
   const after = await page.request.get(job.result.previewUrl);
   expect(original.status()).toBe(200);
@@ -247,35 +213,11 @@ test("real private Colab result survives refresh, denies strangers and downloads
   await expect(viewer).toHaveAttribute("data-loaded", "true", {
     timeout: 30000,
   });
-  if (generationFailed)
-    await expect(page.getByRole("alert")).toContainText(
-      "Your topwear result is saved",
-    );
   await page.reload();
   await expect(viewer).toHaveAttribute("data-loaded", "true");
   await expect(
     viewer.getByRole("img", { name: "Generated virtual try-on", exact: true }),
   ).toHaveAttribute("src", job.result.previewUrl);
-  if (bottom && !generationFailed) {
-    await page
-      .getByRole("button", { name: "Topwear only", exact: true })
-      .click();
-    await expect(
-      viewer.getByRole("img", {
-        name: "Generated virtual try-on",
-        exact: true,
-      }),
-    ).toHaveAttribute("src", job.result.outfit.topwear.previewUrl);
-    await page
-      .getByRole("button", { name: "Combined outfit", exact: true })
-      .click();
-    await expect(
-      viewer.getByRole("img", {
-        name: "Generated virtual try-on",
-        exact: true,
-      }),
-    ).toHaveAttribute("src", job.result.previewUrl);
-  }
   await page
     .getByRole("button", { name: "Inspect details", exact: true })
     .click();
@@ -322,7 +264,7 @@ test("real private Colab result survives refresh, denies strangers and downloads
     JSON.stringify(
       {
         jobStatus: job.status,
-        verifiedImage: generationFailed ? "saved-topwear" : "final-result",
+        verifiedImage: "final-result",
         privateAccess: true,
         reload: true,
         comparisonModes: true,

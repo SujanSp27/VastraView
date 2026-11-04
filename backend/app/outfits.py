@@ -1,4 +1,4 @@
-"""Two real, private single-garment generations; never synthesize a success.
+"""Legacy offline evaluation support; not exposed by the production API.
 
 The pinned FASHN model accepts one reference. Its existing bottomwear compositor
 protects parsed source top pixels. Combined jobs require that preservation proof

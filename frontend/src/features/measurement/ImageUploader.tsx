@@ -1,4 +1,4 @@
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Upload, X, Check } from "../../icons";
 import { prepareImage } from "../../utils/images";
 import { ErrorNotice } from "../../components/feedback/Feedback";
@@ -18,17 +18,28 @@ export default function ImageUploader({
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [drag, setDrag] = useState(false);
+  const selectionVersion = useRef(0);
+  useEffect(
+    () => () => {
+      selectionVersion.current += 1;
+    },
+    [],
+  );
   async function choose(candidate?: File) {
     if (!candidate || disabled) return;
+    const version = ++selectionVersion.current;
     setError("");
     setBusy(true);
     try {
-      onChange(await prepareImage(candidate));
+      const prepared = await prepareImage(candidate);
+      if (version === selectionVersion.current) onChange(prepared);
     } catch (e) {
-      setError((e as Error).message);
+      if (version === selectionVersion.current) setError((e as Error).message);
     } finally {
-      setBusy(false);
-      if (ref.current) ref.current.value = "";
+      if (version === selectionVersion.current) {
+        setBusy(false);
+        if (ref.current) ref.current.value = "";
+      }
     }
   }
   return (
@@ -75,7 +86,13 @@ export default function ImageUploader({
             type="button"
             className="upload-remove icon-button"
             aria-label={`Remove ${label}`}
-            onClick={() => onChange(undefined)}
+            onClick={() => {
+              selectionVersion.current += 1;
+              setBusy(false);
+              setError("");
+              if (ref.current) ref.current.value = "";
+              onChange(undefined);
+            }}
           >
             <X size={16} />
           </button>

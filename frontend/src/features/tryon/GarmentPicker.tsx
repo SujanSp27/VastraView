@@ -23,12 +23,10 @@ export default function GarmentPicker({
   disabled,
   selected,
   onSelect,
-  garmentType,
 }: {
   disabled: boolean;
   selected?: string;
   onSelect: (garment: Garment) => void;
-  garmentType?: "topwear" | "bottomwear";
 }) {
   const [items, setItems] = useState<Garment[]>([]);
   const [filter, setFilter] = useState("all");
@@ -44,7 +42,6 @@ export default function GarmentPicker({
     setError(false);
     fetch(
       "/api/v1/products?limit=48&sort=newest&tryon_supported=true" +
-        (garmentType ? `&garment_type=${garmentType}` : "") +
         (search ? `&q=${encodeURIComponent(search)}` : ""),
       {
         signal: controller.signal,
@@ -55,15 +52,7 @@ export default function GarmentPicker({
         const data = await r.json();
         if (active) {
           const apiItems: Garment[] = data.items || [];
-          const roles =
-            garmentType === "bottomwear"
-              ? ["jeans", "trouser", "shorts", "skirt"]
-              : ["t-shirt", "shirt", "blouse", "sweater", "jacket"];
-          setItems(
-            garmentType
-              ? apiItems.filter((item) => roles.includes(item.category))
-              : apiItems,
-          );
+          setItems(apiItems);
           setFilter((current) =>
             apiItems.some((item: Garment) => item.category === current)
               ? current
@@ -86,7 +75,7 @@ export default function GarmentPicker({
       clearTimeout(timer);
       controller.abort();
     };
-  }, [retry, garmentType, search]);
+  }, [retry, search]);
   const labels: Record<string, string> = {
     "t-shirt": "Tops & polos",
     blouse: "Blouses",
@@ -104,22 +93,13 @@ export default function GarmentPicker({
     <section className="card garment-catalog">
       <div className="section-heading">
         <div>
-          <h3>
-            {garmentType === "bottomwear"
-              ? "Complete your outfit"
-              : "Discover another look"}
-          </h3>
-          <p className="muted">Select a real garment, or upload your own.</p>
+          <h3>Discover another look</h3>
           <Link className="text-button" to="/catalog">
             Browse the full collection
           </Link>
         </div>
         <select
-          aria-label={
-            garmentType === "bottomwear"
-              ? "Filter bottomwear catalog"
-              : "Filter garment catalog"
-          }
+          aria-label="Filter garment catalog"
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
         >
@@ -134,7 +114,7 @@ export default function GarmentPicker({
         </select>
       </div>
       <label className="field">
-        Search {garmentType ?? "garments"} by name or brand
+        Search garments by name or brand
         <input
           type="search"
           value={search}

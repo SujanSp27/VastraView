@@ -8,7 +8,7 @@ test("editorial hero and catalog images load across desktop and mobile", async (
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
-  const photo = page.locator(".editorial-photo img");
+  const photo = page.locator(".hero-models-img");
   await expect(photo).toBeVisible();
   await expect
     .poll(() => photo.evaluate((im: HTMLImageElement) => im.naturalWidth))
@@ -39,8 +39,12 @@ test("editorial hero and catalog images load across desktop and mobile", async (
   const quality = await (
     await page.request.get("/api/v1/catalog/quality")
   ).json();
-  expect(products).toHaveLength(quality.approvedCount);
-  expect(products.length).toBeLessThanOrEqual(20);
+  expect(products).toHaveLength(catalog.total);
+  expect(new Set(products.map((p: { id: string }) => p.id)).size).toBe(products.length);
+  if (quality.enforced) {
+    expect(products).toHaveLength(quality.approvedCount);
+    expect(products.length).toBeLessThanOrEqual(quality.targetCount);
+  }
   for (const item of products) {
     const image = await page.request.get(item.imageUrl);
     expect(image.status()).toBe(200);
@@ -49,7 +53,7 @@ test("editorial hero and catalog images load across desktop and mobile", async (
   }
   await page.goto("/catalog");
   await expect(page.locator(".product-card")).toHaveCount(
-    Math.min(12, products.length),
+    Math.min(18, products.length),
   );
   if (!products.length) {
     await expect(
@@ -69,7 +73,7 @@ test("editorial hero and catalog images load across desktop and mobile", async (
     ).json();
     await page.getByLabel("Color", { exact: true }).selectOption(color);
     await expect(page.locator(".product-card")).toHaveCount(
-      Math.min(12, filtered.total),
+      Math.min(18, filtered.total),
     );
     await page.route("**/api/v1/products/*/image", (route) =>
       route.fulfill({ status: 404 }),

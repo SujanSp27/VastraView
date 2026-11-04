@@ -81,6 +81,34 @@ def register(client, email="owner@example.com"):
     )
 
 
+def test_worker_connection_requires_auth_and_production_admin(studio, monkeypatch):
+    (owner, guest, _), *_ = studio
+    adopted = []
+    monkeypatch.setattr(main.connection, "adopt_credentials", lambda *args: adopted.append(args) or {"available": True})
+    payload = {"connection": json.dumps({"url": "https://test.gradio.live", "token": "x" * 40})}
+    assert guest.post("/api/tryon/connect", json=payload).status_code == 401
+    assert register(owner).status_code == 201
+    assert owner.post("/api/tryon/connect", json={"connection": "x" * 4097}).status_code == 422
+    assert owner.post("/api/tryon/connect", json={"connection": '{"url": {}, "token": 123}'}).status_code == 400
+    assert adopted == []
+    assert owner.post("/api/tryon/connect", json=payload).status_code == 200
+    monkeypatch.setattr(settings, "environment", "production")
+    monkeypatch.setattr(settings, "admin_token", "test-admin-secret")
+    assert not owner.get("/api/v1/public-config").json()["manual_worker_connection"]
+    assert owner.post("/api/tryon/connect", json=payload).status_code == 403
+    assert len(adopted) == 1
+    assert owner.post("/api/tryon/connect", json=payload,
+                      headers={"X-Admin-Token": "test-admin-secret"}).status_code == 200
+    assert len(adopted) == 2
+    def fail(*args):
+        raise ValueError("private-token-must-not-leak")
+    monkeypatch.setattr(main.connection, "adopt_credentials", fail)
+    response = owner.post("/api/tryon/connect", json=payload,
+                          headers={"X-Admin-Token": "test-admin-secret"})
+    assert response.status_code == 400
+    assert "private-token" not in response.text
+
+
 def test_catalog_filters_actual_assets_and_idempotent_favorites(studio):
     (owner, stranger, _), db, *_ = studio
     assert register(owner).status_code == 201

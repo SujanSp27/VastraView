@@ -7,6 +7,7 @@ import base64
 import io
 import json
 import time
+from contextlib import nullcontext
 from threading import Lock
 from urllib.parse import urlparse
 
@@ -132,6 +133,28 @@ class OnlineTryOn:
         self._checked_token = ""
         self._reachable = False
         self._garment_categories = frozenset()
+        self._client_lock = Lock()
+        self._client = None
+
+    def http_client(self):
+        # Reuse TCP/TLS connections for status, submission and event retrieval.
+        # Tokens remain explicit per request; rotating the worker URL cannot
+        # reuse an old endpoint's category capability or authentication payload.
+        with self._client_lock:
+            if self._client is None or self._client.is_closed:
+                self._client = httpx.Client(
+                    timeout=httpx.Timeout(settings.online_vton_timeout, connect=10),
+                    limits=httpx.Limits(max_connections=4, max_keepalive_connections=2,
+                                       keepalive_expiry=60),
+                    follow_redirects=False, transport=self.transport,
+                )
+            return self._client
+
+    def close(self):
+        # Called only after connection monitoring and active jobs have stopped.
+        with self._client_lock:
+            if self._client is not None:
+                self._client.close()
 
     def refresh_connection(self):
         if not self.read_connection_file or not settings.online_connection_path.is_file():
@@ -165,8 +188,8 @@ class OnlineTryOn:
             with self._health_lock:
                 if url != self._checked_url or token != self._checked_token or time.monotonic() - self._checked_at > 10:
                     try:
-                        with httpx.Client(timeout=4, follow_redirects=False, transport=self.transport) as client:
-                            response = client.post(url + "/gradio_api/run/status", json={"data": [token]})
+                        with nullcontext(self.http_client()) as client:
+                            response = client.post(url + "/gradio_api/run/status", json={"data": [token]}, timeout=4)
                             data = response.json().get("data", []) if response.status_code == 200 else []
                             status = data[0] if isinstance(data, list) and data else {}
                             if isinstance(status, str):
@@ -221,11 +244,12 @@ class OnlineTryOn:
                 base64.b64encode(garment_upload).decode(), category if typed else MODEL_CATEGORIES[category],
                 photo_type, settings.online_vton_steps]
         encoding_seconds = time.perf_counter() - encoding_started
+        request_started = time.perf_counter()
         try:
-            with httpx.Client(timeout=httpx.Timeout(settings.online_vton_timeout, connect=10),
-                              follow_redirects=False, transport=self.transport) as client:
+            with nullcontext(self.http_client()) as client:
                 response = client.post(url + "/gradio_api/call/generate", json={"data": data})
                 response.raise_for_status()
+                acknowledged_at = time.perf_counter()
                 event_id = response.json()["event_id"]
                 if not isinstance(event_id, str) or not event_id.isalnum() or len(event_id) > 100:
                     raise ValueError("Invalid remote event ID")
@@ -283,6 +307,10 @@ class OnlineTryOn:
                     "downloadedImageBytes": downloaded_image_bytes,
                     "preparationSeconds": round(preparation_seconds, 3),
                     "encodingSeconds": round(encoding_seconds, 3),
+                    "submissionSeconds": round(acknowledged_at - request_started, 3),
+                    # Includes remote queue, compute and response transfer; not
+                    # mislabeled as model execution or pure network overhead.
+                    "eventWaitAndTransferSeconds": round(received_at - acknowledged_at, 3),
                     "requestAndStreamSeconds": round(received_at - start - encoding_seconds, 3),
                     "savingSeconds": round(time.perf_counter() - received_at, 3),
                 }

@@ -102,7 +102,7 @@ test("equal panels fill the frame on desktop, tablet and mobile; pointer and key
 }) => {
   const viewer = await fixture(page);
   await expect(viewer).toHaveAttribute("data-loaded", "true");
-  for (const width of [3840, 1920, 1440, 768, 375]) {
+  for (const width of [3840, 1920, 1440, 768, 375, 320]) {
     await page.setViewportSize({ width, height: 1000 });
     const boxes = await viewer
       .locator(".compare-original, .compare-result")
@@ -129,6 +129,20 @@ test("equal panels fill the frame on desktop, tablet and mobile; pointer and key
     expect(heading.y + heading.height).toBeLessThanOrEqual(frame!.y);
     const footer = (await viewer.locator(".comparison-footer").boundingBox())!;
     expect(footer.y).toBeGreaterThanOrEqual(frame!.y + frame!.height);
+    // A clipped action can hide inside overflow:hidden without increasing the
+    // document width. Check every action against its actual card boundary.
+    for (const action of await viewer
+      .locator(".comparison-footer .button")
+      .all()) {
+      const bounds = (await action.boundingBox())!;
+      expect(bounds.x).toBeGreaterThanOrEqual(footer.x);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(
+        footer.x + footer.width + 1,
+      );
+      expect(bounds.y + bounds.height).toBeLessThanOrEqual(
+        footer.y + footer.height + 1,
+      );
+    }
     expect(
       Math.abs(boxes[0].width + boxes[1].width - frame!.width),
     ).toBeLessThan(3);
@@ -346,7 +360,9 @@ test("changing a garment invalidates the saved result; a new job retains mode an
   await expect(viewer).toHaveAttribute("data-loaded", "true");
   await viewer.getByRole("button", { name: "Slider", exact: true }).click();
   await page.getByRole("button", { name: "Try sample photos" }).click();
-  await page.getByRole("button", { name: "Select Male Model", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Select Male Model", exact: true })
+    .click();
   await expect(
     page.getByRole("button", { name: "Generate try-on", exact: true }),
   ).toBeEnabled();

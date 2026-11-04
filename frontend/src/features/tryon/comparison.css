@@ -1216,6 +1216,10 @@
 }
 
 @media (max-width: 600px) {
+  .tryon-heading-actions {
+    flex-wrap: wrap;
+    max-width: 100%;
+  }
   .comparison-header {
     padding: 0 0 12px;
     gap: 12px;
@@ -1243,6 +1247,7 @@
     padding: 10px 10px 0;
   }
   .comparison-footer {
+    flex-wrap: wrap;
     gap: 10px;
     padding: 12px 10px;
   }

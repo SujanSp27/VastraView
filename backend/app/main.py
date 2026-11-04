@@ -7,11 +7,12 @@ from uuid import UUID, uuid4
 from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, Query, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from pymongo.errors import PyMongoError
 from sqlalchemy import func, select, text
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
+from starlette.datastructures import UploadFile as MultipartUpload
 
 from backend.app.accounts.lifecycle import router as lifecycle_router
 from backend.app.accounts.locks import account_operation
@@ -71,6 +72,7 @@ async def lifespan(app: FastAPI):
     finally:
         connection.close()
         jobs.close()
+        pipeline.worker.close()
         if get_measurement_service.cache_info().currsize:
             get_measurement_service().detector.close()
             get_measurement_service.cache_clear()
@@ -271,11 +273,13 @@ def retry_tryon_connection():
 
 
 class ColabConnectPayload(BaseModel):
-    connection: str
+    connection: str = Field(min_length=1, max_length=4096)
 
 
-@app.post("/api/tryon/connect", status_code=200)
-def connect_tryon(payload: ColabConnectPayload):
+@app.post("/api/tryon/connect", status_code=200, dependencies=[Depends(authenticated_owner)])
+def connect_tryon(payload: ColabConnectPayload, x_admin_token: str = Header(default="")):
+    if settings.environment == "production":
+        require_admin(x_admin_token)
     import json
     import re
     raw = payload.connection.strip()
@@ -287,8 +291,12 @@ def connect_tryon(payload: ColabConnectPayload):
                 parsed = parsed["connection"]
             url = parsed.get("url")
             token = parsed.get("token")
-    except Exception:
+    except (ValueError, TypeError):
         pass
+    if url is not None and not isinstance(url, str):
+        raise HTTPException(400, "Invalid worker connection.")
+    if token is not None and not isinstance(token, str):
+        raise HTTPException(400, "Invalid worker connection.")
     if not url:
         url_match = re.search(r"https://[a-zA-Z0-9-]+\.gradio\.live", raw)
         if url_match:
@@ -307,7 +315,8 @@ def connect_tryon(payload: ColabConnectPayload):
         snapshot = connection.adopt_credentials(url, token)
         return {"success": True, "snapshot": snapshot}
     except Exception as exc:
-        raise HTTPException(400, str(exc))
+        logger.warning("Manual worker connection rejected (%s)", type(exc).__name__)
+        raise HTTPException(400, "The worker could not be verified. Check the connection details and retry.") from exc
 
 
 @app.post("/api/brands", status_code=201, dependencies=[Depends(admin)])
@@ -381,7 +390,19 @@ def require_tryon_ready():
                             'The Colab model is unavailable. Recovery has been requested; retry shortly.', 503)
 
 
-@app.post("/api/tryon")
+async def require_single_garment(request: Request):
+    """Reject ambiguous/legacy multipart inputs before any inference is scheduled."""
+    form = await request.form()
+    retired_fields = {"bottomwearImage", "bottomwearCategory", "bottomwearPhotoType",
+                      "bottomwearProductId", "topwearImage", "topwearRunId"}
+    for key in form:
+        values = form.getlist(key)
+        if (key in retired_fields or len(values) != 1
+                or (isinstance(values[0], MultipartUpload) and key not in {"personImage", "garmentImage"})):
+            raise PipelineError("single_garment_only", "Upload exactly one person image and one garment image.", 422)
+
+
+@app.post("/api/tryon", dependencies=[Depends(require_single_garment)])
 def tryon(
     request: Request,
     personImage: UploadFile = File(),
@@ -401,14 +422,12 @@ def tryon(
     throttle(accounts, request, "tryon", owner, maximum=200 if settings.environment == "development" else 20)
     if brandId is not None and db.get(Brand, brandId) is None:
         raise PipelineError("brand_missing", "The selected brand does not exist.", 404)
+    person_data, garment_data = upload_bytes(personImage), upload_bytes(garmentImage)
     if productId:
         from backend.app.wardrobe import validate_catalog_submission
-        garment_data = upload_bytes(garmentImage)
         validate_catalog_submission(accounts, productId, garment_data, garmentCategory.value, garmentPhotoType)
-        garmentImage.file.seek(0)
     if prefer == "respond-async":
         # Image generation is independent of available sizing charts.
-        person_data, garment_data = upload_bytes(personImage), upload_bytes(garmentImage)
         parameters = {
             "brand_id": brandId, "category": garmentCategory.value, "fit": fitPreference.value,
             "photo_type": garmentPhotoType,
@@ -433,8 +452,8 @@ def tryon(
         require_tryon_ready()
         return pipeline.run(
             db,
-            upload_bytes(personImage),
-            upload_bytes(garmentImage),
+            person_data,
+            garment_data,
             brandId,
             garmentCategory.value,
             fitPreference.value,
@@ -450,57 +469,11 @@ def job_status(job_id: UUID, owner=Depends(principal)):
     return jobs.get(job_id, owner=owner)
 
 
-@app.post("/api/tryon/outfit", status_code=202)
-def outfit_tryon(
-    request: Request,
-    personImage: UploadFile = File(),
-    garmentImage: UploadFile = File(),
-    bottomwearImage: UploadFile = File(),
-    garmentCategory: GarmentCategory = Form(),
-    bottomwearCategory: GarmentCategory = Form(),
-    garmentPhotoType: str = Form("flat-lay", pattern="^(flat-lay|model)$"),
-    bottomwearPhotoType: str = Form("flat-lay", pattern="^(flat-lay|model)$"),
-    productId: str | None = Form(None, pattern="^[a-z0-9][a-z0-9-]{1,79}$"),
-    bottomwearProductId: str | None = Form(None, pattern="^[a-z0-9][a-z0-9-]{1,79}$"),
-    topwearRunId: UUID | None = Form(None),
-    idempotency_key: str | None = Header(None),
-    owner: str = Depends(authenticated_owner),
-    accounts=Depends(account_db),
-    db: Session = Depends(get_db),
-):
-    import hashlib
-
-    from backend.app.outfits import reusable_top, run_outfit, validate_outfit
-    from backend.app.wardrobe import validate_catalog_submission
-
-    throttle(accounts, request, "tryon", owner, maximum=200 if settings.environment == "development" else 20)
-    validate_outfit(garmentCategory.value, bottomwearCategory.value)
-    person, top, bottom = (upload_bytes(upload) for upload in (personImage, garmentImage, bottomwearImage))
-    for product_id, data, category, photo in (
-        (productId, top, garmentCategory.value, garmentPhotoType),
-        (bottomwearProductId, bottom, bottomwearCategory.value, bottomwearPhotoType),
-    ):
-        if product_id:
-            validate_catalog_submission(accounts, product_id, data, category, photo)
-    options = dict(top_category=garmentCategory.value, bottom_category=bottomwearCategory.value,
-                   top_photo_type=garmentPhotoType, bottom_photo_type=bottomwearPhotoType,
-                   owner=owner, top_run_id=str(topwearRunId) if topwearRunId else None)
-
-    def preflight():
-        for data in (person, top, bottom):
-            normalized_image(data)
-        if topwearRunId:
-            reusable_top(db, pipeline, str(topwearRunId), owner, person, top, garmentCategory.value, garmentPhotoType)
-        require_tryon_ready()
-
-    def work():
-        with SessionLocal() as worker_db:
-            return run_outfit(pipeline, worker_db, person, top, bottom, **options)
-
-    parameters = {**options, "workflow": "outfit", "bottomwearSha256": hashlib.sha256(bottom).hexdigest(),
-                  "productId": productId, "bottomwearProductId": bottomwearProductId}
-    state = jobs.submit(person, top, parameters, work, idempotency_key, preflight=preflight)
-    return JSONResponse(status_code=202, content=state, headers={"Location": state["statusUrl"]})
+@app.post("/api/tryon/outfit", deprecated=True, include_in_schema=False)
+def retired_outfit_tryon(owner: str = Depends(authenticated_owner)):
+    # Preserve an actionable response for old clients, never schedule two generations.
+    raise PipelineError("single_garment_only",
+                        "Combined try-on has been retired. Submit one person and one garment to /api/tryon.", 410)
 
 
 @app.get("/api/runs", response_model=RunPage, dependencies=[Depends(admin)])
@@ -534,10 +507,21 @@ def delete_run(run_id: UUID, db: Session = Depends(get_db)):
     db.commit()
 
 
+def sample_person_path(gender: str):
+    candidates = (
+        ("assets/Model/studio-person.png", "assets/Model/studio-person.jpg", "data/raw/studio-person.jpg")
+        if gender == "male" else
+        ("assets/Model/vastraview_female_model.png", "data/raw/vastraview_female_model.png")
+    )
+    return next((ROOT / path for path in candidates if (ROOT / path).is_file()), None)
+
+
 @app.get("/api/samples/models")
 def sample_models():
     """Return available sample models for virtual try-on."""
-    return [
+    if settings.environment == "production":
+        return []
+    models = [
         {
             "id": "male",
             "name": "Male Model",
@@ -555,6 +539,12 @@ def sample_models():
             "description": "Standard elegant female model (168 cm)",
         },
     ]
+    available = []
+    for model in models:
+        target = sample_person_path(model["id"])
+        if target is not None:
+            available.append({**model, "filename": target.name})
+    return available
 
 
 @app.get("/api/samples/{kind}")
@@ -573,18 +563,12 @@ def sample(kind: str):
     if kind not in files:
         raise HTTPException(404, "Sample not available")
     if "female" in kind:
-        target = ROOT / "assets/Model/vastraview_female_model.png"
-        if not target.is_file():
-            target = ROOT / "data/raw" / files[kind]
+        target = sample_person_path("female")
     elif "male" in kind or kind == "person":
-        target = ROOT / "assets/Model/studio-person.png"
-        if not target.is_file():
-            target = ROOT / "assets/Model/studio-person.jpg"
-        if not target.is_file():
-            target = ROOT / "data/raw" / files[kind]
+        target = sample_person_path("male")
     else:
         target = ROOT / "data/raw" / files[kind]
-    if not target.is_file():
+    if target is None or not target.is_file():
         raise HTTPException(404, "Sample not available")
     return FileResponse(
         target,
@@ -596,10 +580,11 @@ def sample(kind: str):
 @app.get("/api/v1/public-config")
 def public_config():
     return {
-        "sample_photos": settings.environment != "production" and (
-            (ROOT / "data/raw/studio-person.jpg").is_file() or (ROOT / "assets/Model/studio-person.jpg").is_file()
+        "sample_photos": settings.environment != "production" and any(
+            sample_person_path(gender) is not None for gender in ("male", "female")
         ),
         "email_verification_required": settings.auth_require_verification,
+        "manual_worker_connection": settings.environment != "production",
         "guest_retention_hours": settings.guest_retention_hours,
         "generated_retention_days": settings.private_retention_days,
     }

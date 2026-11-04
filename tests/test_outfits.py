@@ -195,54 +195,30 @@ def test_partial_job_is_failed_and_owner_scoped(tmp_path):
             worker.close()
 
 
-def test_outfit_api_auth_validation_and_idempotency(tmp_path, monkeypatch):
-    import time
-    from uuid import uuid4
-
+def test_retired_outfit_api_never_schedules_inference(monkeypatch):
     import mongomock
     from fastapi.testclient import TestClient
 
     from backend.app import main, outfits
     from backend.app.anthropometry.repository import MeasurementRepository, get_repository
 
-    repo = MeasurementRepository(mongomock.MongoClient(tz_aware=True), "outfit_api")
+    repo = MeasurementRepository(mongomock.MongoClient(tz_aware=True), "retired_outfit_api")
     repo.db.command = lambda *a, **kw: {"ok": 1}
-    jobs = TryOnJobs(tmp_path / "jobs", BoundedSemaphore(1))
     main.app.dependency_overrides[get_repository] = lambda: repo
-    monkeypatch.setattr(main, "jobs", jobs)
-    monkeypatch.setattr(main, "require_tryon_ready", lambda: None)
-    calls = []
-    def run(*args, **kwargs):
-        calls.append((args[2:5], kwargs))
-        return {"status": "success", "runId": "transport-only"}
-    monkeypatch.setattr(outfits, "run_outfit", run)
-    key = str(uuid4())
-    files = {"personImage": ("p.png", photo("white")), "garmentImage": ("g.png", photo("red")),
-             "bottomwearImage": ("b.png", photo("black"))}
-    options = dict(files=files, data={"garmentCategory": "shirt", "bottomwearCategory": "jeans"},
-                   headers={"Idempotency-Key": key})
+    def forbidden(*args, **kwargs):
+        pytest.fail("Retired workflow must never schedule inference")
+    monkeypatch.setattr(outfits, "run_outfit", forbidden)
+    monkeypatch.setattr(main.jobs, "submit", forbidden)
     try:
         with TestClient(main.app) as client:
-            assert client.post("/api/tryon/outfit", **options).status_code == 401
-            assert client.post("/api/v1/auth/signup", json={"name": "Outfit Test", "email": "outfit@example.com",
+            assert client.post("/api/tryon/outfit").status_code == 401
+            assert client.post("/api/v1/auth/signup", json={"name": "Outfit Test", "email": "retired@example.com",
                 "password": "Outfit!Secure2026", "terms_accepted": True}).status_code == 201
-            bad = {**options, "data": {"garmentCategory": "dress", "bottomwearCategory": "jeans"}}
-            assert client.post("/api/tryon/outfit", **bad).status_code == 422
-            ack = client.post("/api/tryon/outfit", **options)
-            assert ack.status_code == 202, ack.text
-            assert ack.headers["location"] == f"/api/tryon/jobs/{key}"
-            deadline = time.monotonic() + 4
-            while jobs.get(key)["status"] not in {"success", "failed"} and time.monotonic() < deadline:
-                time.sleep(.01)
-            assert jobs.get(key)["status"] == "success"
-            assert client.post("/api/tryon/outfit", **options).status_code == 202
-            changed = {**options, "files": {**files, "bottomwearImage": ("b.png", photo("blue"))}}
-            assert client.post("/api/tryon/outfit", **changed).status_code == 409
-            assert len(calls) == 1
-            assert calls[0][0][2] == photo("black")
-            assert calls[0][1]["bottom_category"] == "jeans"
+            response = client.post("/api/tryon/outfit")
+            assert response.status_code == 410
+            assert "single_garment_only" in response.text
+            assert "/api/tryon/outfit" not in client.get("/openapi.json").json()["paths"]
     finally:
-        jobs.close()
         main.app.dependency_overrides.clear()
 
 

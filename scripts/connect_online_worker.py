@@ -11,8 +11,8 @@ else:
     from colab_notebook_control import result
 
 
-def save_connection(connection: dict, target: Path):
-    """Atomically adopt credentials returned by the saved private notebook."""
+def validate_connection(connection: dict):
+    """Validate before any network request or credential-file mutation."""
     parsed = urlparse(connection.get('url', ''))
     token = connection.get('token')
     if (parsed.scheme != 'https' or not (parsed.hostname or '').endswith('.gradio.live')
@@ -20,6 +20,11 @@ def save_connection(connection: dict, target: Path):
             or parsed.path not in {'', '/'} or parsed.port not in {None, 443}
             or not isinstance(token, str) or len(token) < 32):
         raise ValueError('Colab did not return a valid private worker connection')
+
+
+def save_connection(connection: dict, target: Path):
+    """Atomically adopt credentials returned by the saved private notebook."""
+    validate_connection(connection)
     target.parent.mkdir(parents=True, exist_ok=True)
     temporary = target.with_suffix('.partial')
     temporary.write_text(json.dumps(connection), encoding='utf-8')

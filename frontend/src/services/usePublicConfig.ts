@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 type Configuration = {
   sample_photos: boolean;
+  manual_worker_connection?: boolean;
   email_verification_required: boolean;
   guest_retention_hours: number;
   generated_retention_days: number;

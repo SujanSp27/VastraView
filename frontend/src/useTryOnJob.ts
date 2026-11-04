@@ -16,8 +16,6 @@ type Job = {
   progress?: { stage: string; completed?: number; total?: number };
 };
 const stages: Record<string, string> = {
-  outfit_topwear: "Stage 1 of 2: generating topwear",
-  outfit_bottomwear: "Stage 2 of 2: applying bottomwear and preserving topwear",
   queued: "Waiting to start",
   preprocessing: "Checking the uploaded photos",
   loading_model: "Loading the try-on model",
@@ -223,10 +221,7 @@ export function useTryOnJob(
     };
   }, [jobId]);
 
-  async function submit(
-    form: FormData,
-    endpoint: "/api/tryon" | "/api/tryon/outfit" = "/api/tryon",
-  ) {
+  async function submit(form: FormData) {
     if (busy || submitting.current) return;
     const id = crypto.randomUUID();
     const version = ++selection.current;
@@ -242,7 +237,7 @@ export function useTryOnJob(
       /* still track the live job */
     }
     try {
-      const response = await sessionFetch(endpoint, {
+      const response = await sessionFetch("/api/tryon", {
         method: "POST",
         body: form,
         headers: { Prefer: "respond-async", "Idempotency-Key": id },

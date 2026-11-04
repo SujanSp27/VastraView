@@ -4,7 +4,7 @@ import { sizingService } from "../../services/sizingService";
 import type { Brand, Recommendation } from "../../types/studio";
 import { useMeasurement } from "../measurement/MeasurementProvider";
 
-// Separate component instances keep topwear and bottomwear chart/results independent.
+// Recommend from the chart for the single selected garment, separately from inference.
 export default function OutfitSizing({
   category,
   label,

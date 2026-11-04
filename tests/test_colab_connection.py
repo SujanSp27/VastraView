@@ -3,13 +3,38 @@ import ast
 import json
 from unittest.mock import Mock
 
+import httpx
 import pytest
 
 from backend.app.colab_connection import ColabConnection
 from backend.app.config import settings
+from backend.app.online_vton import OnlineTryOn
 from scripts import auto_connect_colab as recovery_module
 from scripts.auto_connect_colab import ColabRecovery
 from scripts.connect_online_worker import save_connection
+
+
+def test_unverified_manual_connection_preserves_saved_worker(tmp_path, monkeypatch):
+    target = tmp_path / "connection.json"
+    old = {"url": "https://old.gradio.live", "token": "o" * 40}
+    save_connection(old, target)
+    original = target.read_bytes()
+    monkeypatch.setattr(settings, "online_connection_path", target)
+    calls = []
+    def respond(request):
+        calls.append(request.url.host)
+        return httpx.Response(503)
+    worker = OnlineTryOn(transport=httpx.MockTransport(respond))
+    manager = ColabConnection(worker, Mock())
+    with pytest.raises(ValueError):
+        manager.adopt_credentials("https://offline.gradio.live", "n" * 40)
+    assert calls == ["offline.gradio.live"]
+    assert target.read_bytes() == original
+    assert worker.credentials() == (old["url"], old["token"])
+    with pytest.raises(ValueError):
+        manager.adopt_credentials("http://127.0.0.1:1234", "n" * 40)
+    assert calls == ["offline.gradio.live"]
+    assert target.read_bytes() == original
 
 
 def test_saved_url_is_not_ready_until_live_check_passes(monkeypatch):
