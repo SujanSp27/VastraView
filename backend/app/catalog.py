@@ -16,7 +16,7 @@ from backend.app.config import ROOT, settings
 from backend.app.garments import GARMENTS
 from backend.app.wardrobe import approval, policy
 from ml.vton.categories import MODEL_CATEGORIES
-from ml.vton.garment_metadata import describe_garment
+from ml.vton.garment_metadata import REGIONS, SUBTYPES, describe_garment
 from ml.vton.taxonomy import TAXONOMY
 
 router = APIRouter(prefix="/api/v1", tags=["Catalog and favorites"])
@@ -304,6 +304,20 @@ def public_product(row, db):
     }
 
 
+def supported_routing_query():
+    """Apply the descriptor's body-region rules before pagination/counting."""
+    return {"$and": [
+        {"classification.pieces": {"$in": [None, 1]}},
+        {"photoType": {"$in": [None, "model", "flat-lay"]}},
+        {"$or": [{
+            "category": {"$in": [key for key, value in MODEL_CATEGORIES.items() if value == family]},
+            "subcategory": {"$in": [None, ""] + [key for key, (_, category) in SUBTYPES.items()
+                                                     if MODEL_CATEGORIES.get(category) == family]},
+            "classification.coverage": {"$in": [None, "", region]},
+        } for family, region in REGIONS.items()]},
+    ]}
+
+
 @router.get("/products")
 def products(
     q: str = Query("", max_length=100),
@@ -335,8 +349,8 @@ def products(
         if value:
             query[key] = value
     if tryon_supported is not None:
-        query.setdefault("$and", []).append({"category": {
-            "$in" if tryon_supported else "$nin": list(MODEL_CATEGORIES)}})
+        routing = supported_routing_query()
+        query.setdefault("$and", []).append(routing if tryon_supported else {"$nor": [routing]})
     if q.strip():
         pattern = re.escape(q.strip())
         brand_ids = [

@@ -88,6 +88,7 @@ export default function TryOnStudio() {
     (next) => {
       setResult(next);
       if (next) {
+        setSourceRender(undefined);
         setEditing(false);
         // Historical renders remain readable without restoring a multi-garment workflow.
         if (!garment)

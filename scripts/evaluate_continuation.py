@@ -8,7 +8,14 @@ from uuid import uuid4
 import httpx
 
 from backend.app.config import ROOT
-from scripts.evaluate_wardrobe import authenticate, catalog_rows, digest, reference_path, save, sheet
+from scripts.evaluate_wardrobe import (
+    authenticate,
+    catalog_rows,
+    digest,
+    reference_path,
+    save,
+    sheet,
+)
 from scripts.worker_audits import retrieve_http
 
 

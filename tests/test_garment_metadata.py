@@ -1,8 +1,10 @@
 """Classification evidence must not become invented construction or quality claims."""
 import json
 
+import mongomock
 import pytest
 
+from backend.app.catalog import supported_routing_query
 from backend.app.config import ROOT
 from ml.vton.garment_metadata import describe_garment
 
@@ -42,4 +44,24 @@ def test_reviewed_knitted_polo_keeps_specific_category():
     result = describe_garment({"category": "sweater", "subcategory": "polo"})
     assert result["routingStatus"] == "supported"
     assert result["category"] == "sweater"
+
+
+def test_filter_and_total_use_same_body_routing_as_product_response():
+    db = mongomock.MongoClient().catalog
+    rows = [
+        {"_id": "valid", "category": "shirt", "subcategory": "shirt", "photoType": "flat-lay"},
+        {"_id": "legacy", "category": "jeans"},
+        {"_id": "knit-polo", "category": "sweater", "subcategory": "polo"},
+        {"_id": "wrong-region", "category": "shirt", "subcategory": "skirt"},
+        {"_id": "set", "category": "shirt", "classification": {"pieces": 2}},
+        {"_id": "saree", "category": "dress", "subcategory": "saree"},
+        {"_id": "unknown", "category": "unclassified"},
+        {"_id": "coverage", "category": "shirt", "classification": {"coverage": "lower-body"}},
+    ]
+    db.products.insert_many(rows)
+    expected = {r["_id"] for r in rows if describe_garment(r)["routingStatus"] == "supported"}
+    query = supported_routing_query()
+    assert {r["_id"] for r in db.products.find(query)} == expected
+    assert db.products.count_documents(query) == len(expected)
+    assert db.products.count_documents({"$nor": [query]}) == len(rows) - len(expected)
 
