@@ -221,7 +221,10 @@ export function useTryOnJob(
     };
   }, [jobId]);
 
-  async function submit(form: FormData) {
+  async function submit(
+    form: FormData,
+    endpoint: "/api/tryon" | "/api/tryon/apply" = "/api/tryon",
+  ) {
     if (busy || submitting.current) return;
     const id = crypto.randomUUID();
     const version = ++selection.current;
@@ -237,7 +240,7 @@ export function useTryOnJob(
       /* still track the live job */
     }
     try {
-      const response = await sessionFetch("/api/tryon", {
+      const response = await sessionFetch(endpoint, {
         method: "POST",
         body: form,
         headers: { Prefer: "respond-async", "Idempotency-Key": id },

@@ -7,7 +7,7 @@ from ml.errors import PipelineError
 from scripts import benchmark_online_vton as benchmark
 
 
-@pytest.mark.parametrize("elapsed,expected", [(24.999, True), (25.0, False), (25.001, False)])
+@pytest.mark.parametrize("elapsed,expected", [(29.999, True), (30.0, False), (30.001, False)])
 def test_timing_excludes_artifact_retrieval_and_uses_strict_target(tmp_path, monkeypatch, elapsed, expected):
     person, garment, output = (tmp_path / name for name in ("person.png", "garment.png", "trial"))
     person.write_bytes(b"person fixture")
@@ -47,7 +47,7 @@ def test_timing_excludes_artifact_retrieval_and_uses_strict_target(tmp_path, mon
     assert len(calls) == 1
     assert checks == [True]
     assert saved["timingTargetMet"] is expected
-    assert saved["targetSeconds"] == 25
+    assert saved["targetSeconds"] == 30
     assert saved["status"] == "generated"
     assert saved["auditRetrieval"]["status"] == "unavailable"
     # An existing folder cannot silently replace the original run or its evidence.

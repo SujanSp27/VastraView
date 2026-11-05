@@ -40,7 +40,9 @@ test("editorial hero and catalog images load across desktop and mobile", async (
     await page.request.get("/api/v1/catalog/quality")
   ).json();
   expect(products).toHaveLength(catalog.total);
-  expect(new Set(products.map((p: { id: string }) => p.id)).size).toBe(products.length);
+  expect(new Set(products.map((p: { id: string }) => p.id)).size).toBe(
+    products.length,
+  );
   if (quality.enforced) {
     expect(products).toHaveLength(quality.approvedCount);
     expect(products.length).toBeLessThanOrEqual(quality.targetCount);

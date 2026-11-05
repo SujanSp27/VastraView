@@ -423,9 +423,10 @@ def tryon(
     if brandId is not None and db.get(Brand, brandId) is None:
         raise PipelineError("brand_missing", "The selected brand does not exist.", 404)
     person_data, garment_data = upload_bytes(personImage), upload_bytes(garmentImage)
+    garment_descriptor = None
     if productId:
         from backend.app.wardrobe import validate_catalog_submission
-        validate_catalog_submission(accounts, productId, garment_data, garmentCategory.value, garmentPhotoType)
+        garment_descriptor = validate_catalog_submission(accounts, productId, garment_data, garmentCategory.value, garmentPhotoType)
     if prefer == "respond-async":
         # Image generation is independent of available sizing charts.
         parameters = {
@@ -433,6 +434,8 @@ def tryon(
             "photo_type": garmentPhotoType,
             "owner": owner,
         }
+        if garment_descriptor is not None:
+            parameters["garment_descriptor"] = garment_descriptor
 
         def work():
             # A request-scoped database session cannot cross into the worker thread.
@@ -459,6 +462,7 @@ def tryon(
             fitPreference.value,
             photo_type=garmentPhotoType,
             owner=owner,
+            garment_descriptor=garment_descriptor,
         )
     finally:
         capacity.release()
@@ -467,6 +471,49 @@ def tryon(
 @app.get("/api/tryon/jobs/{job_id}")
 def job_status(job_id: UUID, owner=Depends(principal)):
     return jobs.get(job_id, owner=owner)
+
+
+async def require_continuation_form(request: Request):
+    form = await request.form()
+    allowed = {"sourceRunId", "garmentImage", "garmentCategory", "garmentPhotoType", "productId"}
+    if any(key not in allowed or len(form.getlist(key)) != 1 for key in form):
+        raise PipelineError("outfit_inputs", "Select one saved render and one new garment.", 422)
+
+
+@app.post("/api/tryon/apply", dependencies=[Depends(require_continuation_form)])
+def apply_to_render(
+    request: Request,
+    sourceRunId: UUID = Form(),
+    garmentImage: UploadFile = File(),
+    garmentCategory: GarmentCategory = Form(),
+    garmentPhotoType: str = Form(default="flat-lay", pattern="^(flat-lay|model)$"),
+    productId: str | None = Form(default=None, pattern="^[a-z0-9][a-z0-9-]{1,79}$"),
+    idempotency_key: str | None = Header(default=None),
+    db: Session = Depends(get_db),
+    owner: str = Depends(authenticated_owner),
+    accounts=Depends(account_db),
+):
+    from backend.app.outfit_continuation import apply_garment, continuation_input
+    from backend.app.wardrobe import validate_catalog_submission
+
+    throttle(accounts, request, "tryon", owner, maximum=200 if settings.environment == "development" else 20)
+    garment = upload_bytes(garmentImage)
+    descriptor = validate_catalog_submission(accounts, productId, garment, garmentCategory.value, garmentPhotoType) if productId else None
+    person = continuation_input(db, pipeline, sourceRunId, owner, garmentCategory.value)
+    parameters = {"source_run_id": str(sourceRunId), "category": garmentCategory.value,
+                  "photo_type": garmentPhotoType, "owner": owner, "garment_descriptor": descriptor}
+
+    def work():
+        with SessionLocal() as worker_db:
+            return apply_garment(pipeline, worker_db, person, garment, **parameters)
+
+    def preflight():
+        normalized_image(person)
+        normalized_image(garment)
+        require_tryon_ready()
+
+    state = jobs.submit(person, garment, parameters, work, idempotency_key, preflight=preflight)
+    return JSONResponse(status_code=202, content=state, headers={"Location": state["statusUrl"]})
 
 
 @app.post("/api/tryon/outfit", deprecated=True, include_in_schema=False)

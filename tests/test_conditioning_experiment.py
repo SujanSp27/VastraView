@@ -35,6 +35,13 @@ def test_experiment_names_cannot_escape_private_directory(name):
         build_program(name)
 
 
+def test_flat_lay_experiment_does_not_silently_switch_to_worn_reference():
+    program = build_program("striped-reference", category="shirt", photo_type="flat-lay")
+    assert "'shirt', 'flat-lay', 10" in program
+    with pytest.raises(ValueError, match="upper-body"):
+        build_program("invalid", category="dress")
+
+
 @pytest.mark.parametrize("mode,kept", [("foreground", [0]), ("preserve-bottoms", [0, 5, 6, 7])])
 def test_foreground_comparison_restores_only_specified_observed_regions(mode, kept):
     tree = ast.parse(build_program("foreground-test", mode, True))

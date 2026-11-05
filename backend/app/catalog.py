@@ -16,6 +16,8 @@ from backend.app.config import ROOT, settings
 from backend.app.garments import GARMENTS
 from backend.app.wardrobe import approval, policy
 from ml.vton.categories import MODEL_CATEGORIES
+from ml.vton.garment_metadata import describe_garment
+from ml.vton.taxonomy import TAXONOMY
 
 router = APIRouter(prefix="/api/v1", tags=["Catalog and favorites"])
 BRANDS = [
@@ -45,39 +47,7 @@ BRANDS = [
     "Raymond", "Manyavar", "Libas", "Max Fashion India", "Zudio", "Westside",
     "ONLY", "Marks & Spencer", "Vero Moda",
 ]
-TAXONOMY = [
-    ("t-shirt", "T-shirts", "tops", "t-shirt"),
-    ("polo", "Polo shirts", "tops", "t-shirt"),
-    ("oversized-tee", "Oversized tees", "tops", "t-shirt"),
-    ("shirt", "Shirts", "tops", "shirt"),
-    ("formal-shirt", "Formal shirts", "tops", "shirt"),
-    ("blouse", "Blouses", "tops", "blouse"),
-    ("top", "Tops", "tops", "blouse"),
-    ("hoodie", "Hoodies", "layers", "sweater"),
-    ("sweatshirt", "Sweatshirts", "layers", "sweater"),
-    ("sweater", "Sweaters", "layers", "sweater"),
-    ("cardigan", "Cardigans", "layers", "sweater"),
-    ("jacket", "Jackets", "layers", "jacket"),
-    ("jeans", "Jeans", "bottoms", "jeans"),
-    ("trouser", "Trousers", "bottoms", "trouser"),
-    ("chino", "Chinos", "bottoms", "trouser"),
-    ("shorts", "Shorts", "bottoms", "shorts"),
-    ("skirt", "Skirts", "bottoms", "skirt"),
-    ("dress", "Dresses", "one-pieces", "dress"),
-    ("gown", "Gowns", "one-pieces", "dress"),
-    ("jumpsuit", "Jumpsuits", "one-pieces", "jumpsuit"),
-    ("kurta", "Kurtas & kurtis", "ethnic", None),
-    ("salwar-suit", "Salwar suits", "ethnic", None),
-    ("saree", "Sarees", "ethnic", None),
-    ("traditional", "Traditional outfits", "ethnic", None),
-    ("co-ord", "Co-ord sets", "sets", None),
-    ("blazer", "Blazers", "layers", "jacket"),
-    ("crop-top", "Crop tops", "tops", "blouse"),
-    ("leggings", "Leggings", "bottoms", "trouser"),
-    ("kurti", "Kurtis", "ethnic", None),
-    ("casual-dress", "Casual dresses", "one-pieces", "dress"),
-    ("formal-dress", "Formal dresses", "one-pieces", "dress"),
-]
+
 
 
 def slug(name):
@@ -318,15 +288,17 @@ def visible_query(db=None, prefix=""):
 def public_product(row, db):
     brand = db.catalog_brands.find_one({"_id": row.get("brand_id")})
     review = approval(row)
+    descriptor = describe_garment(row)
     return {
         **{k: v for k, v in row.items() if k not in {"_id", "filename", "display_image"}},
         "id": row["_id"],
+        "garmentDescriptor": descriptor,
         "garment_type": {"tops": "topwear", "bottoms": "bottomwear", "one-pieces": "one-piece"}.get(MODEL_CATEGORIES.get(row.get("category"))),
         "brand_name": brand["name"] if brand else "Independent reference",
         "imageUrl": f"/api/v1/products/{row['_id']}/image",
         "referenceImageUrl": f"/api/v1/products/{row['_id']}/reference-image",
         "displayImage": {k: v for k, v in (row.get("display_image") or {}).items() if k != "filename"} or None,
-        "tryon_supported": row.get("category") in MODEL_CATEGORIES and (not policy()["enforced"] or review["status"] == "approved"),
+        "tryon_supported": descriptor["routingStatus"] == "supported" and (not policy()["enforced"] or review["status"] == "approved"),
         "qualityReview": review,
         "availability": "reference-only",
     }

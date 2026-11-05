@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { api } from "../../services/api/client";
+import { api, errorMessage, sessionFetch } from "../../services/api/client";
 import { usePublicConfig } from "../../services/usePublicConfig";
 import { ArrowRight, LoaderCircle, Shirt, Sparkles } from "../../icons";
 import { useTryOnJob } from "../../useTryOnJob";
@@ -59,6 +59,10 @@ export default function TryOnStudio() {
   const setSelectedGarment = (productId?: string) =>
     setSelection((value) => ({ ...value, productId }));
   const [result, setResult] = useState<Result>();
+  const [sourceRender, setSourceRender] = useState<{
+    id: string;
+    category: string;
+  }>();
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState("");
   const [availability, setAvailability] = useState<VtonAvailability>();
@@ -73,6 +77,13 @@ export default function TryOnStudio() {
   const [preview, setPreview] = useState<string>();
   const [garmentPreview, setGarmentPreview] = useState<string>();
   const [samplesBusy, setSamplesBusy] = useState(false);
+  const availableCategories = sourceRender
+    ? categories.filter(([key]) =>
+        ["trouser", "jeans", "shorts", "skirt"].includes(sourceRender.category)
+          ? ["t-shirt", "shirt", "blouse", "sweater", "jacket"].includes(key)
+          : ["trouser", "jeans", "shorts", "skirt"].includes(key),
+      )
+    : categories;
   const { busy, message, submit, reset } = useTryOnJob(
     (next) => {
       setResult(next);
@@ -92,6 +103,7 @@ export default function TryOnStudio() {
       // A result selected in another tab has its own original photo. Do not keep
       // this tab's old uploads poised for an unrelated generation.
       setPerson(undefined);
+      setSourceRender(undefined);
       setSelection(emptySelection());
     },
   );
@@ -175,15 +187,15 @@ export default function TryOnStudio() {
     setConnectBusy(true);
     setConnectError("");
     try {
-      const response = await fetch("/api/tryon/connect", {
+      const response = await sessionFetch("/api/tryon/connect", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ connection: connectInput.trim() }),
       });
-      const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.detail || "Failed to connect to Colab worker.");
+        throw new Error(await errorMessage(response));
       }
+      const data = await response.json();
       setAvailability(data.snapshot);
       setShowConnectModal(false);
       setConnectInput("");
@@ -212,6 +224,7 @@ export default function TryOnStudio() {
           : Promise.resolve(null),
       ]);
       setPerson(personFile);
+      setSourceRender(undefined);
       if (collection && collection.items.length > 0) {
         const compatible = collection.items.filter(
           (item) => item.tryon_supported !== false && !!item.category,
@@ -244,6 +257,12 @@ export default function TryOnStudio() {
   }
 
   async function selectGarment(item: Garment) {
+    if (!availableCategories.some(([key]) => key === item.category)) {
+      setError(
+        "Choose a garment for the other body region, or start a new look.",
+      );
+      return;
+    }
     if (item.tryon_supported === false || !item.category) {
       setError(
         "This editorial outfit is not supported by the try-on model. Choose a supported single garment.",
@@ -301,12 +320,43 @@ export default function TryOnStudio() {
     if (!person || !garment || !availability?.available) return;
     setError("");
     const form = new FormData();
-    form.append("personImage", person);
+    if (sourceRender) form.append("sourceRunId", sourceRender.id);
+    else form.append("personImage", person);
     form.append("garmentImage", garment);
     form.append("garmentCategory", category);
     form.append("garmentPhotoType", photoType);
     if (selectedGarment) form.append("productId", selectedGarment);
-    await submit(form);
+    await submit(form, sourceRender ? "/api/tryon/apply" : "/api/tryon");
+  }
+
+  async function continueOutfit() {
+    if (!result || busy) return;
+    setSamplesBusy(true);
+    setError("");
+    try {
+      const file = await downloadPhoto(
+        result.previewUrl,
+        "previous-render.png",
+      );
+      setPerson(file);
+      setSourceRender({ id: result.runId, category: result.garmentCategory });
+      const bottom = ["trouser", "jeans", "shorts", "skirt"].includes(
+        result.garmentCategory,
+      );
+      setSelection({
+        ...emptySelection(),
+        category: bottom ? "shirt" : "trouser",
+      });
+      setEditing(true);
+    } catch (e) {
+      setError(
+        e instanceof Error
+          ? e.message
+          : "The saved render could not be loaded.",
+      );
+    } finally {
+      setSamplesBusy(false);
+    }
   }
 
   return (
@@ -366,9 +416,23 @@ export default function TryOnStudio() {
             onChange={(file) => {
               reset();
               setPerson(file);
+              setSourceRender(undefined);
             }}
           />
           <h3>Single Garment</h3>
+          {sourceRender && (
+            <p className="fine-print">
+              Adding to your saved look. The other garment will be preserved.
+              <button
+                type="button"
+                className="button secondary"
+                disabled={busy}
+                onClick={() => setSourceRender(undefined)}
+              >
+                Start a new look
+              </button>
+            </p>
+          )}
           <p className="fine-print">
             Choose one garment. Selecting another replaces it; your person photo
             stays selected.
@@ -402,7 +466,7 @@ export default function TryOnStudio() {
                 setSelectedGarment(undefined);
               }}
             >
-              {categories.map(([value, label]) => (
+              {availableCategories.map(([value, label]) => (
                 <option value={value} key={value}>
                   {label}
                 </option>
@@ -469,13 +533,15 @@ export default function TryOnStudio() {
                 >
                   {retryBusy ? "Checking…" : "Retry"}
                 </button>
-                {configuration?.manual_worker_connection && <button
-                  className="button secondary"
-                  style={{ flex: 1 }}
-                  onClick={() => setShowConnectModal((prev) => !prev)}
-                >
-                  {showConnectModal ? "Cancel" : "Connect Colab"}
-                </button>}
+                {configuration?.manual_worker_connection && (
+                  <button
+                    className="button secondary"
+                    style={{ flex: 1 }}
+                    onClick={() => setShowConnectModal((prev) => !prev)}
+                  >
+                    {showConnectModal ? "Cancel" : "Connect Colab"}
+                  </button>
+                )}
               </div>
 
               {showConnectModal && (
@@ -588,6 +654,15 @@ export default function TryOnStudio() {
           )}{" "}
           {result && (
             <div className="card result-caption">
+              {!["dress", "jumpsuit"].includes(result.garmentCategory) && (
+                <button
+                  className="button secondary"
+                  disabled={busy || samplesBusy}
+                  onClick={() => void continueOutfit()}
+                >
+                  Add another garment
+                </button>
+              )}
               <div className="row-between">
                 <strong>
                   {error

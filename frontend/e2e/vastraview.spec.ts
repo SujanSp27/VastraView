@@ -10,23 +10,23 @@ test("VastraView branding, real catalog filters, product selection and mobile ac
   await page.goto("/");
   await expect(page).toHaveTitle(/VastraView/);
   await expect(page.getByRole("heading", { name: /Your Style/ })).toBeVisible();
-  await expect(page.locator(".home-intro .brand-logo")).toBeVisible();
+  await expect(page.locator(".brand-logo").first()).toBeVisible();
   await page
-    .getByRole("link", { name: "Explore Collection", exact: true })
+    .getByRole("link", { name: "Discover Styles", exact: true })
     .last()
     .click();
   const products = await (
     await page.request.get("/api/v1/products?limit=48")
   ).json();
   await expect(page.locator(".product-card")).toHaveCount(
-    Math.min(12, products.total),
+    Math.min(18, products.total),
   );
   const navyCatalog = await (
     await page.request.get("/api/v1/products?q=navy")
   ).json();
   await page.getByLabel("Search apparel").fill("navy");
   await expect(page.locator(".product-card")).toHaveCount(
-    Math.min(12, navyCatalog.total),
+    Math.min(18, navyCatalog.total),
   );
   await page.getByLabel("Search apparel").fill("sage");
   await expect(page.locator(".product-card")).toHaveCount(0);
@@ -40,7 +40,7 @@ test("VastraView branding, real catalog filters, product selection and mobile ac
   );
   await page.goto("/catalog");
   await expect(page.locator(".product-card")).toHaveCount(
-    Math.min(12, products.total),
+    Math.min(18, products.total),
   );
   for (const width of [375, 768, 1440]) {
     await page.setViewportSize({ width, height: 1000 });

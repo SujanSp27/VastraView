@@ -22,11 +22,14 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def build_program(case: str, mode: str = "semantic", validation_person: bool = False,
-                  validation_baseline: bool = True) -> str:
+                  validation_baseline: bool = True, category: str = "shirt", photo_type: str = "model") -> str:
     if not re.fullmatch(r"[a-zA-Z0-9_-]{1,64}", case):
         raise ValueError("Use a simple unique experiment name.")
     if mode not in {"semantic", "contour", "foreground", "preserve-bottoms"}:
         raise ValueError("Unknown diagnostic conditioning mode.")
+    from ml.vton.categories import MODEL_CATEGORIES
+    if MODEL_CATEGORIES.get(category) != "tops" or photo_type not in {"model", "flat-lay"}:
+        raise ValueError("This conditioning experiment requires supported upper-body inputs.")
     variant = {"semantic": "E-semantic-shirt", "contour": "F-official-contour",
                "foreground": "G-foreground-contour",
                "preserve-bottoms": "H-preserve-bottoms"}[mode]
@@ -83,7 +86,7 @@ for trial_name, person_name, baseline in trials:
     payload = generate(token,
         base64.b64encode((case/person_name).read_bytes()).decode(),
         base64.b64encode((case/'garment.png').read_bytes()).decode(),
-        'shirt', 'model', 10)
+        {category!r}, {photo_type!r}, 10)
     payload.pop('image', None)
     payload['experiment'] = {{'variant':trial_name, 'elapsedSeconds':time.perf_counter()-started,
         'personConditioning':environment['personConditioning']}}
@@ -108,6 +111,8 @@ def main():
     parser.add_argument("--hostname", required=True)
     parser.add_argument("--person", type=Path, required=True)
     parser.add_argument("--garment", type=Path, required=True)
+    parser.add_argument("--category", default="shirt")
+    parser.add_argument("--photo-type", choices=["model", "flat-lay"], default="model")
     parser.add_argument("--validation-person", type=Path)
     parser.add_argument("--reuse-validation-baseline", action="store_true",
                         help="Reuse an already saved exact-input/config baseline instead of generating it again")
@@ -116,7 +121,7 @@ def main():
     if not re.fullmatch(r"[A-Za-z0-9.-]{1,253}", args.hostname):
         parser.error("Supply the independently verified runtime hostname.")
     program = build_program(args.case, args.mode, bool(args.validation_person),
-                            not args.reuse_validation_baseline)
+                            not args.reuse_validation_baseline, args.category, args.photo_type)
     records = {}
     from PIL import Image
     inputs = [("person.png", args.person), ("garment.png", args.garment)]

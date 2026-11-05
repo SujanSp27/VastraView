@@ -21,7 +21,7 @@ class TryOnPipeline:
 
     def run(self, db: Session, person_data: bytes, garment_data: bytes,
             brand_id: int | None, category: str, fit: str = "regular",
-            photo_type: str = "flat-lay", owner: str | None = None, *, finalize=None) -> dict:
+            photo_type: str = "flat-lay", owner: str | None = None, *, finalize=None, garment_descriptor=None) -> dict:
         run_id = str(uuid4())
         folder = self.store.create(run_id)
         start = time.perf_counter()
@@ -32,6 +32,7 @@ class TryOnPipeline:
                             "garment": hashlib.sha256(garment_data).hexdigest()},
             "brandId": brand_id, "garmentCategory": category, "garmentPhotoType": photo_type,
             "fitPreference": fit,
+            "garmentDescriptor": garment_descriptor,
         }
         record = Run(id=run_id, status="processing", chart_id=None, metadata_json=metadata)
         db.add(record)
@@ -46,6 +47,7 @@ class TryOnPipeline:
                 "status": "success", "mode": "2d", "renderingMethod": "pretrained-vton",
                 "runId": run_id, "brandId": brand_id, "brandName": brand.name if brand else None,
                 "garmentCategory": category, "garmentPhotoType": photo_type, "fit": fit, "recommendedSize": None,
+                "garmentDescriptor": garment_descriptor,
                 "measurements": None, "score": None, "explanation": {}, "candidates": [],
                 "chartVersion": None, "previewUrl": self.store.url(run_id, "tryon-2d.png"),
                 "originalUrl": self.store.url(run_id, "original-person.png"),

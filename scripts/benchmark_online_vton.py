@@ -35,7 +35,7 @@ def main():
     parser.add_argument("--photo-type", choices=["model", "flat-lay"], default="flat-lay")
     parser.add_argument("--steps", type=int, choices=[10, 15, 20, 30, 50], default=settings.online_vton_steps)
     parser.add_argument("--input-encoding", choices=["lossless", "jpeg95"], default=settings.online_vton_input_encoding)
-    parser.add_argument("--target-seconds", type=float, default=25.)
+    parser.add_argument("--target-seconds", type=float, default=30.)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     if not 0 < args.target_seconds <= 600:

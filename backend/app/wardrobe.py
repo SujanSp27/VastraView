@@ -13,6 +13,7 @@ from pathlib import Path
 from backend.app.config import ROOT
 from ml.errors import PipelineError
 from ml.vton.categories import MODEL_CATEGORIES
+from ml.vton.garment_metadata import describe_garment
 
 POLICY_PATH = ROOT / "data/catalog/wardrobe-approved-v1.json"
 
@@ -82,6 +83,9 @@ def validate_catalog_submission(db, product_id: str, garment: bytes, category: s
     row = db.products.find_one({"_id": product_id, "active": True})
     if not row:
         raise PipelineError("garment_unavailable", "This catalog garment is unavailable.", 404)
+    descriptor = describe_garment(row)
+    if descriptor["routingStatus"] != "supported":
+        raise PipelineError("garment_classification_conflict", "This garment's category needs review before try-on.", 422)
     data = policy()
     if row.get("category") not in MODEL_CATEGORIES or (data["enforced"] and approval(row)["status"] != "approved"):
         raise PipelineError("garment_not_approved", "This garment has not passed wardrobe review. Choose an approved garment.", 422)
@@ -95,3 +99,4 @@ def validate_catalog_submission(db, product_id: str, garment: bytes, category: s
     if (category != row["category"] or photo_type != row["photoType"]
             or hashlib.sha256(garment).digest() != hashlib.sha256(path.read_bytes()).digest()):
         raise PipelineError("garment_input_mismatch", "The selected garment, photo type or category changed. Select the garment again.", 422)
+    return descriptor
