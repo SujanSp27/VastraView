@@ -24,6 +24,8 @@ The platform eliminates expensive local GPU requirements and third-party SaaS AP
 - [Project Directory Structure](#-project-directory-structure)
 - [Prerequisites](#-prerequisites)
 - [Quick Start Guide (Windows)](#-quick-start-guide-windows)
+- [Database Access & CLI](#-database-access--cli)
+- [Catalog & Garment Management](#-catalog--garment-management)
 - [Google Colab GPU Worker Setup](#-google-colab-gpu-worker-setup)
 - [Core Workflows](#-core-workflows)
   - [1. 2D Photo Virtual Try-On](#1-2d-photo-virtual-try-on)
@@ -33,8 +35,8 @@ The platform eliminates expensive local GPU requirements and third-party SaaS AP
 - [Environment Configuration](#-environment-configuration)
 - [Testing & Quality Assurance](#-testing--quality-assurance)
 - [Security & Privacy](#-security--privacy)
-- [Detailed Documentation Index](#-detailed-documentation-index)
 - [Troubleshooting & FAQ](#-troubleshooting--faq)
+- [Detailed Documentation Index](#-detailed-documentation-index)
 
 ---
 
@@ -248,6 +250,70 @@ powershell -ExecutionPolicy Bypass -File scripts/stop.ps1
 
 ---
 
+## 🗄️ Database Access & CLI
+
+VastraView utilizes two local databases. You can connect to them using GUI clients (MongoDB Compass, DBeaver, TablePlus, VS Code extensions) or terminal CLIs:
+
+### 1. 🍃 MongoDB (Accounts, Scans, Catalog & Sizing Charts)
+- **Connection URI**: `mongodb://127.0.0.1:27017`
+- **Database Name**: `formfit_measurements`
+- **GUI Access (MongoDB Compass / VS Code)**: Paste `mongodb://127.0.0.1:27017` into your client connection string input.
+- **Terminal Access (`mongosh`)**:
+  ```powershell
+  mongosh "mongodb://127.0.0.1:27017/formfit_measurements"
+  ```
+- **Primary Collections**:
+  - `products`: Garment catalog inventory, descriptions, and active status.
+  - `brand_size_charts`: 45 versioned official brand sizing fixtures (Nike, Puma, Levi's, H&M, etc.).
+  - `users` & `saved_scans`: User credentials and private anthropometry landmark scans.
+
+### 2. 🐘 PostgreSQL (Runs, Job State & Relational Records)
+- **Connection URL**: `postgresql://tryon:tryon_local_only@127.0.0.1:5433/tryon`
+- **Host**: `127.0.0.1` | **Port**: `5433` *(Note: local project instance uses port 5433)*
+- **Database**: `tryon` | **Username**: `tryon` | **Password**: `tryon_local_only`
+- **GUI Access (DBeaver / pgAdmin / TablePlus)**: Create a new PostgreSQL connection with the credentials above.
+- **Terminal Access (Bundled `psql`)**:
+  ```powershell
+  $env:PGPASSWORD="tryon_local_only"
+  & .runtime/pgsql/bin/psql.exe -h 127.0.0.1 -p 5433 -U tryon -d tryon
+  ```
+
+---
+
+## 🛍️ Catalog & Garment Management
+
+All catalog apparel items are stored in MongoDB under `formfit_measurements.products`.
+
+### 1. Hide an Item from the Studio UI (Soft Delete - Recommended)
+The catalog API filters exclusively for `{ active: true }`. Setting `active: false` immediately hides the garment from the frontend studio without breaking existing scan/run references, and prevents the startup seeder from re-adding it:
+```javascript
+// In mongosh or MongoDB Compass
+use formfit_measurements
+
+db.products.updateOne(
+  { _id: "<product_id>" }, // e.g. "hm-half-hand-shirt-1", "levis-oversized-shirt-1", "westside-full-hand-t-shirt-1"
+  { $set: { active: false } }
+)
+```
+
+### 2. Permanently Delete an Item from MongoDB
+To permanently remove a product:
+```javascript
+use formfit_measurements
+
+db.products.deleteOne({ _id: "<product_id>" })
+```
+> [!NOTE]
+> If you permanently delete a garment with `deleteOne`, also remove its corresponding entry from [`data/catalog/garments-v2.json`](data/catalog/garments-v2.json) so the startup catalog seeder does not recreate it on the next backend reboot. Option 1 (soft delete) avoids this.
+
+### 3. Quick One-Line Terminal Command (PowerShell)
+You can deactivate any product in one command without opening a database GUI or shell:
+```powershell
+& .venv/Scripts/python.exe -c "from pymongo import MongoClient; mc = MongoClient('mongodb://127.0.0.1:27017'); mc['formfit_measurements'].products.update_one({'_id': '<product_id>'}, {'$set': {'active': False}}); print('Item deactivated successfully.')"
+```
+
+---
+
 ## ⚡ Google Colab GPU Worker Setup
 
 VastraView offloads heavy diffusion inference to your own private Google Colab notebook.
@@ -406,6 +472,39 @@ npm run build
 - **Robust Authentication**: Passwords hashed with **Argon2id**. JWTs remain strictly in browser memory (never stored in `localStorage` or `sessionStorage`), protecting against XSS token exfiltration.
 - **CSRF & Refresh Protection**: Sensitive state transitions utilize HttpOnly, SameSite=Strict cookies with atomic single-use refresh token rotation and multi-tab Web Locks synchronization.
 - **Automatic Asset Retention**: Configurable background cleanup scripts (`scripts/cleanup_private_data.py`) purge temporary generation caches and guest sessions.
+
+---
+
+## 🩺 Troubleshooting & FAQ
+
+### 1. `non_target_garment_changed` Error during Bottomwear Try-On
+- **Symptom**: `The generated lower garment introduced an extra upper-body clothing layer. This result was rejected; try a photo with a clearly visible waistband.`
+- **Cause**: Trying on lower garments (jeans, trousers, skirts) using an input photo where the person wears an **untucked shirt** covering the waistband. The diffusion model renders a waistband that slightly shifts the boundary into what was originally classified as trousers by a few pixels, which previously tripped a strict 0.5% threshold.
+- **Local Resolution**: The boundary tolerance in [`ml/vton/online_composite.py`](ml/vton/online_composite.py) has been relaxed from `0.005` (0.5%) to `0.035` (3.5%).
+- **Colab GPU Worker Fix**: If your remote Google Colab worker encounters this error, run this one-liner in a Colab notebook cell:
+  ```python
+  !sed -i 's/np.count_nonzero(old) \* .005/np.count_nonzero(old) * .035/g' ml/vton/online_composite.py
+  ```
+  Then restart the worker cell (`!python scripts/online_worker.py --port 8080`).
+- **Best Photo Practice**: For the cleanest visual seams when trying on bottoms, tuck in the shirt or choose a reference photo where the waistband/belt is clearly exposed.
+
+### 2. Neck & Collar Alignment / Seam Artifacts
+- **Symptom**: A thin dark seam or gap appears across the neck when trying on open or camp-collar tops after wearing a dark crewneck t-shirt.
+- **Cause**: Preserving the edge anti-aliasing of the original high-neck collar at the boundary of the throat.
+- **Resolution**: Use seamless boundary feathering with anatomical collar alignment, ensuring the throat emerges naturally from inside the shirt collar opening while keeping 100% pixel fidelity on the face, chin, hair, and body.
+- **Browser Memory Cache**: If you update an active run image on disk and the browser still displays the older image, press **`Ctrl + Shift + R`** (or **`Ctrl + F5`**) to perform a hard-refresh and clear the browser's cached image element.
+
+### 3. Port Conflicts or Stale Postmaster PID
+- **Symptom**: `Port 8000 or 5173 is already in use` or PostgreSQL fails to start reporting an active postmaster.
+- **Resolution**:
+  - Run the shutdown script: `powershell -ExecutionPolicy Bypass -File scripts/stop.ps1`
+  - If a stale PID file persists in `.runtime/pgdata/postmaster.pid` after a sudden crash, delete the file and re-run `scripts/start.ps1`.
+
+### 4. Clean Application Shutdown
+To safely terminate all running services (FastAPI Uvicorn server, Vite dev server, and portable PostgreSQL daemon):
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/stop.ps1
+```
 
 ---
 

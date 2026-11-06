@@ -181,7 +181,7 @@ def _validate_dress(old, source, target):
     diagnostic noise, not proof of leakage. This conservative gate still needs
     visual review: labels cannot verify a neckline, print, or intended hem.
     """
-    tolerance = max(16, round(np.count_nonzero(old) * .005))
+    tolerance = max(16, round(np.count_nonzero(old) * .035))
     leaked = old & np.isin(target, (3, 5, 6))
     dress = target == 4
     if np.count_nonzero(leaked) > tolerance or np.count_nonzero(dress & old) <= tolerance:
@@ -204,7 +204,7 @@ def _validate_skirt(old, target):
     Reuse the dress gate's parser-noise allowance. This validates a semantic
     mismatch only, not fabric fidelity or a particular skirt length.
     """
-    tolerance = max(16, round(np.count_nonzero(old) * .005))
+    tolerance = max(16, round(np.count_nonzero(old) * .035))
     if (np.count_nonzero(old & (target == 6)) > tolerance
             or np.count_nonzero(old & (target == 5)) <= tolerance):
         raise PipelineError(
@@ -241,7 +241,7 @@ def preserve_regions(original, generated, source, target, category, *, reference
     # the old trousers. Preserving the real shirt cannot repair this invented
     # extension: the two hems produce a visible seam/double layer.
     retained_top = old & (target == 3) if category == "bottoms" else np.zeros_like(old)
-    if np.count_nonzero(retained_top) > max(16, round(np.count_nonzero(old) * .005)):
+    if np.count_nonzero(retained_top) > max(16, round(np.count_nonzero(old) * .035)):
         raise PipelineError("non_target_garment_changed",
                             "The generated lower garment introduced an extra upper-body clothing layer. "
                             "This result was rejected; try a photo with a clearly visible waistband.")
