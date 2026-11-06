@@ -441,36 +441,6 @@ npm run build
 
 ---
 
-## 🩺 Troubleshooting & FAQ
-
-### 1. `non_target_garment_changed` Error during Bottomwear Try-On
-- **Symptom**: `The generated lower garment introduced an extra upper-body clothing layer. This result was rejected; try a photo with a clearly visible waistband.`
-- **Cause**: Trying on lower garments (jeans, trousers, skirts) using an input photo where the person wears an **untucked shirt** covering the waistband. The diffusion model renders a waistband that slightly shifts the boundary into what was originally classified as trousers by a few pixels, which previously tripped a strict 0.5% threshold.
-- **Local Resolution**: The boundary tolerance in [`ml/vton/online_composite.py`](ml/vton/online_composite.py) has been relaxed from `0.005` (0.5%) to `0.035` (3.5%).
-- **Colab GPU Worker Fix**: If your remote Google Colab worker encounters this error, run this one-liner in a Colab notebook cell:
-  ```python
-  !sed -i 's/np.count_nonzero(old) \* .005/np.count_nonzero(old) * .035/g' ml/vton/online_composite.py
-  ```
-  Then restart the worker cell (`!python scripts/online_worker.py --port 8080`).
-- **Best Photo Practice**: For the cleanest visual seams when trying on bottoms, tuck in the shirt or choose a reference photo where the waistband/belt is clearly exposed.
-
-### 2. Neck & Collar Alignment / Seam Artifacts
-- **Symptom**: A thin dark seam or gap appears across the neck when trying on open or camp-collar tops after wearing a dark crewneck t-shirt.
-- **Cause**: Preserving the edge anti-aliasing of the original high-neck collar at the boundary of the throat.
-- **Resolution**: Use seamless boundary feathering with anatomical collar alignment, ensuring the throat emerges naturally from inside the shirt collar opening while keeping 100% pixel fidelity on the face, chin, hair, and body.
-- **Browser Memory Cache**: If you update an active run image on disk and the browser still displays the older image, press **`Ctrl + Shift + R`** (or **`Ctrl + F5`**) to perform a hard-refresh and clear the browser's cached image element.
-
-### 3. Port Conflicts or Stale Postmaster PID
-- **Symptom**: `Port 8000 or 5173 is already in use` or PostgreSQL fails to start reporting an active postmaster.
-- **Resolution**:
-  - Run the shutdown script: `powershell -ExecutionPolicy Bypass -File scripts/stop.ps1`
-  - If a stale PID file persists in `.runtime/pgdata/postmaster.pid` after a sudden crash, delete the file and re-run `scripts/start.ps1`.
-
-### 4. Clean Application Shutdown
-To safely terminate all running services (FastAPI Uvicorn server, Vite dev server, and portable PostgreSQL daemon):
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts/stop.ps1
-```
 
 ---
 
