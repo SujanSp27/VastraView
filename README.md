@@ -280,40 +280,6 @@ VastraView utilizes two local databases. You can connect to them using GUI clien
 
 ---
 
-## 🛍️ Catalog & Garment Management
-
-All catalog apparel items are stored in MongoDB under `formfit_measurements.products`.
-
-### 1. Hide an Item from the Studio UI (Soft Delete - Recommended)
-The catalog API filters exclusively for `{ active: true }`. Setting `active: false` immediately hides the garment from the frontend studio without breaking existing scan/run references, and prevents the startup seeder from re-adding it:
-```javascript
-// In mongosh or MongoDB Compass
-use formfit_measurements
-
-db.products.updateOne(
-  { _id: "<product_id>" }, // e.g. "hm-half-hand-shirt-1", "levis-oversized-shirt-1", "westside-full-hand-t-shirt-1"
-  { $set: { active: false } }
-)
-```
-
-### 2. Permanently Delete an Item from MongoDB
-To permanently remove a product:
-```javascript
-use formfit_measurements
-
-db.products.deleteOne({ _id: "<product_id>" })
-```
-> [!NOTE]
-> If you permanently delete a garment with `deleteOne`, also remove its corresponding entry from [`data/catalog/garments-v2.json`](data/catalog/garments-v2.json) so the startup catalog seeder does not recreate it on the next backend reboot. Option 1 (soft delete) avoids this.
-
-### 3. Quick One-Line Terminal Command (PowerShell)
-You can deactivate any product in one command without opening a database GUI or shell:
-```powershell
-& .venv/Scripts/python.exe -c "from pymongo import MongoClient; mc = MongoClient('mongodb://127.0.0.1:27017'); mc['formfit_measurements'].products.update_one({'_id': '<product_id>'}, {'$set': {'active': False}}); print('Item deactivated successfully.')"
-```
-
----
-
 ## ⚡ Google Colab GPU Worker Setup
 
 VastraView offloads heavy diffusion inference to your own private Google Colab notebook.
